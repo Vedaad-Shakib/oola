@@ -1,0 +1,164 @@
+{% extends "baseClass.html" %}
+
+{% block title %}Class Confirm{% endblock %}
+
+{% block content %}
+
+<!-- <meta http-equiv="refresh" content="1500;url=/class/" /> -->
+
+<div class="container">
+
+ <div class="welcome-white-small">
+  <img id="logo-header" src="/media/img/oola-logo-large-tran_white.png" 
+   width="15%" alt="Ool Logo">
+ </div>
+ <p>&nbsp;</p>
+ <div class="welcome-white-small">Welcome back, <span class="class-em">{{ name }}</span></div>
+ <p>&nbsp;</p>
+ <div class="welcome-white-small"><span id="balance" class="class-em">{{ balance }}</span> 
+  classes remaining, including today 
+  and <span id="guests" class="class-em">{{ guests }}</span> guests.
+ </div>
+
+ <p>&nbsp;</p>
+ <form  method="post" action="/class/checkin/" class="xclass-signin-form">
+  {% csrf_token %}
+  <input type="hidden" name="name" value="{{ name }}"/>
+  <input type="hidden" name="oldCount" value="{{ oldCount }}"/>
+  <div class="center">
+   <span class="welcome-white-small">Additional Guest(s)&nbsp;</span>
+   <input class="class-signin-input" type="text" name="guests" id="newGuests" size="3" value="{{ guests }}"
+    style="position: relative; top:-3px;" onkeypress ="if (event.keyCode == 13) { setGuestFunc( jQuery(this).val() ); return false; }" />
+   <button class="btn-u" type="submit" style="border: 0;" title="Add guest" onclick="addGuestFunc(); return false;">
+    <i class="glyphicon glyphicon-plus class-signin-icon" ></i></button>
+   <button class="btn-u" type="submit" style="border: 0;" title="Reduce guest" onclick="reduceGuestFunc(); return false;">
+    <i class="glyphicon glyphicon-minus class-signin-icon" ></i></button>
+  </div>
+ </form>
+
+ {% if balance < 3 %}
+  <p>&nbsp;</p>
+  <div class="row">
+   <div class="col-sm-2 col-xs-0"></div>
+   <div class="col-sm-8 col-xs-12 class-warning">
+    <div class="row">
+     <div class="col-xs-1"><i class="glyphicon glyphicon-warning-sign class-warning-icon"></i></div>
+     <div class="col-xs-11">
+      <strong>Your balance is low!</strong><br>
+       Please see Ula to purchase a new card. 
+     </div>
+    </div>
+   </div>
+   <div class="col-sm-2 col-xs-0"></div>
+  </div>
+ {% endif %}
+ {% if not waiver %}
+  <p>&nbsp;</p>
+  <div class="row">
+   <div class="col-sm-2 col-xs-0"></div>
+   <div class="col-sm-8 col-xs-12 class-warning">
+    <div class="row">
+     <div class="col-xs-1"><i class="glyphicon glyphicon-warning-sign class-warning-icon"></i></div>
+     <div class="col-xs-11">
+      <strong>Waiver signature needed!</strong><br>
+       You have not yet signed the waiver, which is mandated by California law.<br>
+       Please fill out the waiver on the table.
+     </div>
+    </div>
+   </div>
+   <div class="col-sm-2 col-xs-0"></div>
+  </div>
+ {% endif %}
+
+ <p>&nbsp;</p>
+ <div class="center">
+  <a href="" onclick="closeFunc( '{{ userId }}', '{{ oldCount }}' ); return false;"><button class="btn-u btn-primary class-button">Close</button></a>
+  &nbsp;
+  <a class="class-link" data-toggle="modal" data-target="#myModal">Cancel</a>
+ </div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        Class check in canceled for {{ name }}!
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+jQuery( function() {
+
+ var myTimer;
+ setActivityTimer();
+
+ jQuery('#myModal').on('shown.bs.modal', function (e) {
+  setTimeout( function() {
+      window.location.assign( "/class/cancel/{{ guests }}/{{ userId }}/{{ oldCount }}/" );
+    }, 3000);
+ });
+});
+
+function closeFunc( userId, oldCount){
+  var url = "/class/save/" + jQuery("#guests").text() + "/" + userId + "/" + oldCount +"/";
+  window.location.assign( url );
+}
+
+function setActivityTimer()
+{
+  myTimer = setTimeout(function () {
+  		window.location.assign( "/class/save/" + jQuery("#guests").text() + "/{{ userId }}/{{ oldCount }}/" );
+ 		}, 15000);
+}
+
+function addGuestFunc()
+{
+   clearTimeout( myTimer );	
+   var gustFild = jQuery( "#newGuests" );
+   var gustVal  = parseInt( gustFild.val() );
+
+   if ( ! isNaN( gustVal ) ){
+     gustVal += 1;
+     gustFild.val( gustVal );
+     jQuery( "#guests" ).text( gustVal );
+     var blnc = parseInt( jQuery( "#balance" ).text() ) - 1;
+     jQuery( "#balance" ).text( blnc );
+   }
+   setActivityTimer();
+}
+
+function reduceGuestFunc()
+{
+   clearTimeout( myTimer );
+   var gustFild = jQuery( "#newGuests" );
+   var gustVal  = parseInt( gustFild.val() );
+    
+   if ( ! isNaN( gustVal ) && gustVal > 0 ){
+	gustVal -= 1;
+	gustFild.val( gustVal );
+      jQuery( "#guests" ).text( gustVal );
+      var blnc = parseInt( jQuery( "#balance" ).text() ) + 1;
+      jQuery( "#balance" ).text( blnc );
+   }
+   setActivityTimer();
+}
+
+function setGuestFunc( val )
+{
+  clearTimeout( myTimer );
+  var gustVal = parseInt( val );
+
+  if ( ! isNaN( gustVal ) && gustVal > -1 ){
+      jQuery( "#guests" ).text( gustVal );
+      var blnc = parseInt( {{ balance }} ) - gustVal;
+      jQuery( "#balance" ).text( blnc );
+  }
+  setActivityTimer();
+}
+
+</script>
+{% endblock %}

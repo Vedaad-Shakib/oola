@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">        
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <title>{% block title %}{% endblock %} :: Oola Dance Fitness</title>
+ <link href="/media/css/bootstrap.css" rel="stylesheet">
+ <link href="/media/css/style.css" rel="stylesheet"/>
+ <link href="/media/css/default.css" rel="stylesheet"/>
+ <link href="/media/css/default2.css" rel="stylesheet"/>
+ <link href="/media/css/oola.css" rel="stylesheet"/>
+
+ <script src="/media/js/jquery-1.10.2.min.js"></script>
+ <script src="/media/js/jquery.validate.js"></script>
+ <script src="/media/js/bootstrap.min.js"></script>
+ <script src="/media/js/forms.js"></script>
+ {% block head_extras %}{% endblock %}
+</head>
+
+<body {% block body_id %}id="app"{% endblock %} 
+{% block body_class %} class="body1" {% endblock %}
+{% block body_bg %} {% endblock %}>
+
+ <div class="top">
+ </div>
+
+ <!--==== Header ===-->
+ <div class="header">
+  <div class="navbar navbar-default" role="navigation" style="background-color: rgba(246,127,034,0.90); border:0; border-radius:0;">
+   <div class="container">
+    <div class="navbar-header">
+     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+     </button>
+     <a class="navbar-brand" href="/home/" title="Go to homepage">
+      <img id="logo-header" src="/media/img/oola-logo-tran_white.png" alt="Oola Logo">
+     </a>
+    </div>
+    <div class="collapse navbar-collapse navbar-responsive-collapse">
+      <ul class="nav navbar-nav navbar-right" style="margin-top: 10px;">
+
+        {% if userName %}
+
+          <li style="padding-top: 15px;"> Hi {{ userName }} </li>
+          <li>&nbsp;</li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Oola<strong class="caret"></strong></a>
+            <ul class="dropdown-menu oola-flush-right">
+              <li><a href="/myprofile/">My Profile</a></li>
+		  {% if userType != 0 %}
+          	    <li><a href="/students/">Students</a></li>
+          	    <li><a href="/transactions/">Transactions</a></li>
+		  {% endif %}
+              <li class="divider"></li>
+              <li><a href="/signout">Sign out</a></li>
+            </ul>
+           </li>
+           
+         <li><a href="/signout">Sign out</a></li>
+
+
+       {% else %}
+	<li class="dropdown">
+	 <a id="register-dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#">Register<strong class="caret"></strong></a>
+<!--=== Register Form ===-->
+	  <div id="register" class="dropdown-menu oola-flush-right">
+	   <form id="formup" method="post" style="margin-top: 10px;" action="/mainPage/" novalidate>
+	   {% csrf_token %}
+	    {% for field in forup %}
+	     <div class="form-group">
+		<div class="input-group">
+	       {{ field }}
+	      </div>
+	     </div>
+	    {% endfor %}
+	    <p class="text-center">
+	     <button class="btn-u btn-primary" type="submit" id="register_submit">Register</button>
+	    </p>
+	   </form>
+	  </div>
+<!--=== End Register Form ===-->
+	</li>
+	<li class="devider"></li>
+	<li class="dropdown">
+	 <a id="signin-dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#">Sign in<strong class="caret"></strong></a>
+<!--=== Signin Form ===-->
+	  <div id="signin" class="dropdown-menu oola-flush-right">
+	   <form id="formin" method="post" style="margin-top: 10px;" action="/mainPage/" novalidate>
+	   {% csrf_token %}
+	    {% for field in forin %}
+	     <div class="form-group">
+		<div class="input-group">
+	       {{ field }}
+	      </div>
+	     </div>
+	    {% endfor %}
+	    <p class="text-center">
+	     <button class="btn-u btn-primary" type="submit" id="singin_submit">Sign in</button>
+	     &nbsp;
+	     <a href="/forgotpassword/"> Forgot Password? </a>
+	    </p>
+	   </form>
+	  </div>
+<!--=== End Signin Form ===-->
+	</li>
+       {% endif %}
+      </ul>
+    </div>
+   </div>
+  </div>
+ </div>
+
+
+<!--=== Content ===-->
+{% block content %}{% endblock %}
+<!--=== End Content ===-->
+      
+<!--=== Footer ===-->
+{% block footer %}{% endblock %}
+<!--=== End Footer ===-->
+
+</body>
+</html>

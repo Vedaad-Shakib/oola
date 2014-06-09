@@ -1,0 +1,64 @@
+{% extends "baseClass.html" %}
+
+{% block title %}Class Register{% endblock %}
+
+{% block content %}
+
+<!-- <meta http-equiv="refresh" content="150;url=/class/" /> -->
+
+<div class="container">
+
+ <div class="welcome-white-small">
+  <img id="logo-header" src="/media/img/oola-logo-large-tran_white.png"
+   width="15%" alt="Ool Logo">
+ </div>
+ <p>&nbsp;</p>
+ <div class="welcome-white-small">We could not find you in our database.</div>
+ <div class="welcome-white-small">Please create an account so you can checkin.</div>
+ <p>&nbsp;</p>
+ <div class="center">
+  <form id="form" method="post" action="/class/signup/" class="class-signin-form">
+   {% csrf_token %}
+   {% for field in form %}
+    <div class="form-group">
+     <div class="input-group">
+      {{ field }}
+     </div>
+    </div>
+   {% endfor %}
+   <p>&nbsp;</p>
+   <div class="center">
+    <button class="btn-u btn-primary class-button" type="submit" style="border: 0;">Save</button>
+    <a href="/class/" data-dismiss="modal" aria-hidden="true" class="class-link">Cancel</a>	
+   </div>
+  </form>
+ </div>
+
+</div>
+
+
+<script>
+jQuery( function() {
+
+ var myTimer;
+ setActivityTimer();
+
+});
+
+function setActivityTimer()
+{	
+    myTimer = setTimeout(function () {
+  		window.location.assign( "/class/");
+ 		}, 15000);
+}
+
+function resetActivityTimer()
+{
+    clearTimeout( myTimer );
+    setActivityTimer();
+}
+
+</script>
+
+{% endblock %}
+

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+
+{% block head_extras %}
+ <link href="../media/css/daterangepicker.css" rel="stylesheet">  
+ <script src="../media/js/moment.min.js"></script>
+ <script src="../media/js/daterangepicker.js"></script>
+ <script src="../media/js/bsselect.js"></script>
+{% endblock %}
+
+<!--=== Content Part ===-->
+{% block content %}
+<div class="container">
+
+ <!--=== Header (filter/sort) --->
+ <div class="row student-row-block">
+  <form id="form" method="post" action="/students/" novalidate>{% csrf_token %}
+   <div class="col-sm-3">
+    <div class="input-group" title="Set range">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+     <span class="form-control" id="daterange"><span>Today</span><b class="caret"></b></span>
+    </div>
+   </div>
+   <div class="col-sm-3">
+    <div class="input-group" title="Filter students">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-filter"></i></span>
+     <select id="filterVal" class="form-control" onchange="submitCntrlForm('cntrlForm')" name="filterVal">
+      <option selected="selected" value="none">None</option>
+      <option value="Bday">Upcoming B-days</option>
+      <option value="Waver">Missing waivers</option>
+      <option value="Balance">Low balances</option>
+     </select>
+    </div>
+   </div>
+   <div class="col-sm-3">
+    <div class="input-group" title="Sort students">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-sort"></i></span>
+     <select id="sortVal" class="form-control" onchange="submitCntrlForm('cntrlForm')" name="sortVal">
+      <option selected="selected" value="Name">By name</option>
+      <option value="Balance">By balance</option>
+      <option value="Bday">By birthday</option>
+      <option value="Act">By activity</option>
+     </select>
+    </div>
+   </div>
+   <div class="col-sm-3">
+    <div class="input-group" title="Search a student">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+     <input type="text" class="form-control" placeholder="Search a student" 
+      name="srch-term" id="srch-term">
+    </div>
+   </div>
+  </form>
+ </div>
+
+ <!--=== Header (#/add)--->
+ <div class="row student-row-block margin-top-20">
+  <div class="col-sm-4 col-xs-0"></div>
+  <div class="col-sm-4 col-xs-6 center" style="font-size:18px;">
+   <span class="class-em">{{ nStudents }}</span> Students 
+  </div>
+  <div class="col-sm-4 col-xs-6">
+   <ul class="list-inline pull-right">
+    <li class="dropdown" title="Add a new student">
+     <a id="addStudent" class="dropdown-toggle" data-toggle="dropdown">
+      <i class="glyphicon glyphicon-user oola"></i>
+     </a>
+    </li>
+    <li class="dropdown" title="Upload students (in CSV)">
+     <a id="uploadStudent" class="dropdown-toggle" data-toggle="dropdown">
+      <i class="glyphicon glyphicon-upload oola"></i>
+     </a>
+    </li>
+    <li class="dropdown" title="Download students (in CSV)">
+     <a id="downloadStudent" class="dropdown-toggle" data-toggle="dropdown">
+      <i class="glyphicon glyphicon-download oola"></i>
+     </a>
+    </li>
+    &nbsp;
+   </ul>
+  </div>
+ </div>
+
+ <!--=== Students--->
+ <div class="row student-row-block margin-top-20">
+  {% for idx in "1234567" %}
+  {% for user in userList %}
+   <div class="col-md-3 col-sm-4"> 
+    <div class="student-item-block">
+     <div class="row">
+      <div class="col-xs-9" title="{{ user.name }}"> {{ user.name }}</div>
+      <div class="col-xs-3 class-em" title="Balance">{{ user.balance }}</div>
+     </div><!-- row -->
+     <div class="row margin-top-10">
+      <!-- Recent activity -->
+      <div class="col-xs-1"> 
+       <i {% if user.recent %}
+	 class="glyphicon glyphicon-star icon-orange" title="Recent activity!"
+	{% else %}
+	 class="glyphicon glyphicon-star icon-grey" title="No recent activity!"
+        {% endif %} ></i>
+      </div>
+      <!-- Edit -->
+      <div class="col-xs-1"> 
+       <a class="student-icon" href="/student/edit/{{ user.userId }}/" 
+        title="Edit {{ user.name }}">
+        <i class="glyphicon glyphicon-pencil"></i>
+       </a>
+      </div>
+      <!-- Email -->
+      <div class="col-xs-1"> 
+       <a class="student-icon" href="mailto:{{ user.email }}" 
+        title="Email {{ user.name }}">
+        <i class="glyphicon glyphicon-envelope"></i>
+       </a>
+      </div>
+      <!-- Birthday -->
+      <div class="col-xs-1"> 
+       <img src="/media/img/1385884051_cake.png" width="16" height="16"
+        {% if not user.showBirthday %} class="icon-greyed" {% endif %}
+	{% if user.hasBirthday %} title="Birthday: {{ user.birthday|date }}" {% else %}
+	title="Birthday: unknown" {% endif %}>
+      </div>
+      <!-- Waiver -->
+      <div class="col-xs-1"> 
+       <i {% if user.waiverSigned %}
+	 class="glyphicon glyphicon-warning-sign icon-grey" title="No warnings!"
+	{% else %}
+	 class="glyphicon glyphicon-warning-sign icon-red" title="Waiver not signed!"
+        {% endif %} ></i>
+      </div>
+      <!-- Stats -->
+      <div class="col-xs-1"> 
+       <a class="student-icon" href="/stats/{{ user.userId }}/">
+        <i class="glyphicon glyphicon-stats" title="View user activity stats ..."></i>
+       </a>
+      </div>
+      <div class="clearfix visible-xs"></div>
+     </div><!-- row -->
+    </div>
+   </div>
+  {% endfor %}
+  {% endfor %}
+ </div>
+
+ <!--=== Pagination--->
+ {% if nPages > 1 %}
+  <div class="row student-row-block margin-top-20">
+   <div class="col-md-12 col-xs-12 col-sm-12 col-lg-12">
+    <div class="center">
+    <ul class="pagination">
+     <li class="disabled"><a href="{{ url }}/1/">&lt;&lt;</a></li>
+     <li class="disabled"><a href="{{ url }}/1/">&lt;</a></li>
+     <li class="active"><a href="{{ url }}/1/">1</a></li>
+    </ul>
+   </div>
+   </div>
+  </div>
+ {% endif %}
+
+</div><!--/container-->		
+{% endblock %}	
+<!--=== End Content Part ===-->
+
+{% block footer %}
+ <script>
+  $(document).ready(function() {
+   $("#daterange").daterangepicker({
+    ranges: {
+     "Today": [new Date(), new Date()],
+     "Yesterday": [moment().subtract("days", 1), moment().subtract("days", 1)],
+     "Last Week": [moment().subtract("days", 6), new Date()],
+     "Last 30 Days": [moment().subtract("days", 29), new Date()],
+     "This Month": [moment().startOf("month"), moment().endOf("month")],
+     "Last Month": [moment().subtract("month", 1).startOf("month"), moment().subtract("month", 1).endOf("month")],
+     "Max": [moment("Jan 1, 2014"), new Date()],
+    },
+    opens: "right",
+    format: "YYYY-MM-DD",
+    startDate: new Date(),
+    endDate: new Date(),
+    }, 
+    function(start, end) {
+     $("#daterange span").html(start.format("MMM D, YYYY") + " - " + end.format("MMM D, YYYY"));
+    }
+   );
+  });
+ </script>
+{% endblock %}	

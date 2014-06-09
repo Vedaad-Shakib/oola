@@ -1,0 +1,92 @@
+{% extends "baseClass.html" %}
+
+{% block title %}Class Checkin{% endblock %}
+
+{% block content %}
+<script src="/media/js/typeahead.bundle.min.js"></script>
+
+<div class="container">
+
+ <p>&nbsp;</p>
+ <p>&nbsp;</p>
+ <div class="welcome-white-small">Welcome To My Party</div>
+ <p>&nbsp;</p>
+ <div class="welcome-white-small">
+  <img id="logo-header" src="/media/img/oola-logo-large-tran_white.png" 
+   width="35%" alt="Ool Logo">
+ </div>
+ <p>&nbsp;</p>
+ <p class="welcome-white-xsmall">
+    First time attending? &nbsp; Enter name to register.
+ </p>
+ <p style="text-align: center; display: inline-block">
+  <form method="post" action="/class/checkin/" class="class-signin-form">
+   {% csrf_token %}
+   <input type="hidden" name="guests" value="0"/>
+   <input type="hidden" name="oldCount" value="0"/>
+   <div id="login" class="input-group">
+    <input class="typeahead class-signin-input" type="text" 
+     placeholder="Enter name to check in" name="name" autofocus="on" size="25"/>
+    <span class="input-group-btn">
+     <button class="btn-u btn-primary" type="submit" style="border: 0;" id="checkin">
+      <i class="glyphicon glyphicon-log-in class-signin-icon" ></i></button>
+    </span>
+   </div>
+  </form>
+ </p>
+
+</div><!-- /.container -->
+
+<script>
+var substringMatcher = function(strs) {
+  return function findMatches(q, cb) {
+    var matches, substringRegex;
+    matches = [];
+    substrRegex = new RegExp(q, 'i');
+    $.each(strs, function(i, str) {
+      if (substrRegex.test(str)) {
+        matches.push({ value: str });
+      }
+    });
+    cb(matches);
+  };
+};
+{% autoescape off %}userList = {{ userNames }};{% endautoescape %}
+$('#login .typeahead').typeahead({
+  hint: true,
+  highlight: true,
+  minLength: 3
+},
+{ name: 'userList',
+  displayKey: 'value',
+  source: substringMatcher(userList)
+});
+
+jQuery( function() {
+  jQuery( "#checkin" ).click( function(e){
+	e.preventDefault();
+	var form 	= jQuery( this ).closest("form");
+
+	jQuery.getJSON( form.attr("action") + "checkRecent/?" + form.serialize(), function(json) {
+		if (json.recent === true) {
+			var cnfm = confirm( json.name +" has already checked in; do you want to overwrite? ");
+			if (cnfm == true){
+				var input = jQuery("<input>").attr("type", "hidden").attr("name", "attendanceId").val(json.attendanceId);
+				form.append(jQuery(input));
+				form.submit();
+			}
+			else{
+				window.location.assign( "/class/" );
+			}
+		}
+		else{
+			form.submit();
+		}
+	});
+		
+  });
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,14 @@
+input {
+	height:20px;
+}
+body {
+	text-align:center;	
+}
+.box {
+	background-color:rgba(255,255,255,0.50);
+	font-family:Cambria, "Hoefler Text", "Liberation Serif", Times, "Times New Roman", serif;
+}
+h1 {
+	font:Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace;
+	color:red;
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <title>{% block title %}{% endblock %} :: Oola Dance Fitness</title>
+ <link href="/media/css/bootstrap.css" rel="stylesheet">
+ <link href="/media/css/style.css" rel="stylesheet"/>
+ <link href="/media/css/default.css" rel="stylesheet"/>
+ <link href="/media/css/default2.css" rel="stylesheet"/>
+ <link href="/media/css/oola.css" rel="stylesheet"/>
+
+ <script src="/media/js/jquery-1.10.2.min.js"></script>
+ <script src="/media/js/jquery.validate.js"></script>
+ <script src="/media/js/bootstrap.min.js"></script>
+ <script src="/media/js/moment.min.js"></script>
+ <script src="/media/js/forms.js"></script>
+</head>
+
+<script type="text/javascript">
+$(document).ready(function() { ShowMyTime(); });
+function ShowMyTime() {
+var dt = moment().format('ddd MMMM D YYYY, h:mm:ss a');
+$("#class-date").html(dt) ;
+window.setTimeout("ShowMyTime()", 1000);
+}
+</script>
+
+<body {% block body_id %}id="app"{% endblock %} 
+{% block body_class %} class="body2" {% endblock %}
+{% block body_bg %} {% endblock %}>
+
+<div class="container">
+ <div class="class-date">
+  <span id="class-date">xxxxxxxxx</span>
+ </div>
+</div>
+
+<!--=== Content ===-->
+{% block content %}{% endblock %}
+<!--=== End Content ===-->
+
+<!--=== Footer ===-->
+{% block footer %}{% endblock %}
+<!--=== End Footer ===-->
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+h1 {
+	color:#09f;
+	margin-bottom:50px;
+}
+.right {
+	float:right;
+}
+.lead {
+	background-color:rgba(255,255,255,0.50);
+	position:relative;
+	margin-top:20px;
+}
+.form {
+	padding:4px;
+	margin-bottom:20px;
+}
+#error_email {
+	color:red;
+	font-size:9px;
+	font-style:italic;
+	margin-bottom:15px;
+}
+#error_password {
+	color:red;
+	font-size:9px;
+	font-style:italic;
+	margin-bottom:15px;
+}
+#error_password2 {
+	color:red;
+	font-size:9px;
+	font-style:italic;
+	margin-bottom:15px;
+}
+#error_name {
+	color:red;
+	font-size:9px;
+	font-style:italic;
+	margin-bottom:15px;
+}
+.open {
+	margin-right:100px;
+}
+#name {
+	height:50px;
+	width:500px;
+	font-size:30px;
+}
+.btn-primary {
+	display:inline-block;
+}
+.navbar {
+	background-color:black;
+}
+.info {
+	background-color:rgba(0,0,0,0.10);
+	height:140px;
+	display:inline-block;
+	margin:5px;
+}
+#username {
+    font-size:22px;
+}
+table {
+    margin-bottom:10px;
+    position:relative;
+}
+td {
+    padding-left:5px;
+    padding-right:5px;
+}
+.head {
+    font-weight:bold;
+    background-color:rgba(0,255,255,0.25)
+}
+.data {
+    font-weight:lighter;
+    background-color:rgba(0,0,0,0.05)
+}
+.transaction {
+    margin-top:20px;
+    position:relative;
+    padding-left:10px;
+}
+.transaction-list {
+    margin-top:10px;
+    position:relative;
+    padding-left:10px;
+}
+hr {
+    border-color:rgba(0,0,0,1.00);
+}
+body {
+    padding-left:10px;
+}
+#filter {
+    font-size:20px;
+    padding-top:10px;
+}
+#noteinput {
+    position:absolute;
+    left:200px;
+}
+.notestuffs {
+    text-align:right;
+    position:absolute;
+    right:85%;
+    vertical-align:middle;
+}
+.extranotes {
+    width:214px;
+    border-style:inset;
+    border-width:1px;
+}
+.date {
+    height:25px;
+    margin-bottom:5px;
+    width:214px;
+}
+.page {
+    background-color:rgba(255,255,255,0.90);
+    width:100%;
+}
+.pageheader {
+    background-color:rgba(0,255,255,0.70);
+    font-size:18px;
+}
+.attendancenum {
+    font-size:36px;
+}
+.rightsearchthingy {
+    display:inline;
+    float:right;
+}
+img {
+    opacity:1.00;
+}

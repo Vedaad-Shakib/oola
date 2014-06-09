@@ -1,0 +1,34 @@
+body {
+	background-color:rgba(0,204,204,1.00)
+}
+.form {
+	display:inline-block;
+}
+div {
+	color:white;
+	margin: 30px;
+	text-align:center;
+}
+#name {
+	font:Constantia, "Lucida Bright", "DejaVu Serif", Georgia, serif;
+	font-size:36px;
+	font-style:italic;
+}
+#balance {
+	font:Gotham, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size:18px;
+}
+.btn {
+	display:inline-block;
+	width:300px;
+	clear: left;
+	height: 32px;
+	font-size: 13px;
+	margin:10px;
+	background-color:rgba(0,100,100,1.00);
+	color:white;
+	border-radius:1px;
+}
+.center {
+	align-items:center;
+}

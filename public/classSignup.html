@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+
+{% block body %} background="media/img/bg.png" {% endblock %}
+
+{% block content %}
+
+<h1>Oops! We could not find you in the system</h1>
+
+<form id="formup">
+ {% for field in form %}
+ <p>
+  <span>{{ field.label }}:</span>
+  {{ field }}
+  <span class = "error_cus" id="form_error_{{ field.name }}">{{ field.errors|join:", "}}</span>
+ </p>
+ {% endfor %}
+ <div class="set-button center full">
+  <div class="holder-button">
+   <input name="submit" type="submit" value="{{ submitVal|default:"Sign Up" }}" class="btn btn-primary" />
+  </div>
+ </div>
+</form>
+<a href="/class/">Home</a>
+
+<script src="../media/js/forms.js" type="text/javascript"></script>
+
+{% endblock %}

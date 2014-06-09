@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block body %} background="media/img/bg.png" {% endblock %}
+
+{% block content %}
+
+<h1>Hello {{name}}!</h1>
+
+<p>
+You have {{balance}} classes left. (not including today)
+</p>
+
+<a href="/class/">Home</a>
+
+<script src="media/js/forms.js" type="text/javascript"></script>
+
+{% endblock %}
