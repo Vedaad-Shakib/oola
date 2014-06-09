@@ -873,14 +873,3 @@ def myprofile(request, check=None):
                                  'userType':user.userType,
                                 },
                                 context_instance=RequestContext(request))
-
-#==============================================================================
-#
-# "test":
-#
-#==============================================================================
-
-def test(request):
-    for i in range(100):
-        sendEmailBasic('vedaad799@gmail.com')
-    return HttpResponseRedirect('/')
