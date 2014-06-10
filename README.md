@@ -40,10 +40,8 @@
 
 ## Creating an SQL table
 In terminal, type the following:
-  ```mysql -u root```
-  ```CREATE DATABASE ula CHARACTER SET utf8;```
-  ```GRANT ALL ON ula.* TO 'djangouser'@'localhost' IDENTIFIED BY 'abc123';```
-  ```quit```
+
+  ```mysql -u root``` <br> ```CREATE DATABASE ula CHARACTER SET utf8;``` <br> ```GRANT ALL ON ula.* TO 'djangouser'@'localhost' IDENTIFIED BY 'abc123';```
   
 ## Changing project settings
 1. Go into apps/settings.py
