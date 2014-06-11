@@ -36,10 +36,6 @@ urlpatterns = patterns('ula.views',
 
     url( r'^clearance/?$',				'clearance'	),
 
-    url( r'^daterangepicker/?$',			'dateRangePicker'),
-
-    url( r'^dateRangePicker/?$',			'dateRangePicker'),
-    
     url( r'^myprofile/?$',				'myprofile'	),
     url( r'^myprofile/(?P<check>check)/?$',		'myprofile'	),
 

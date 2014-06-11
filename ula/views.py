@@ -341,7 +341,7 @@ def students( request, sortBy="name0", page="1", range="all"):
     currPage	= 4
     nPages	= 4
     nStudents	= len( userList )
-    url		= request.get_full_path()
+    url		= request.get_full_path()[:-1]
 
     return render_to_response( 'students.html',
                                {'userName':	user.name,
@@ -683,17 +683,6 @@ def userPage(request):
 
 #==============================================================================
 #
-# "dateRagnePicker": Date Range Picker Tester
-#
-#==============================================================================
-
-def dateRangePicker(request):
-    return render_to_response('dateSelector.html',
-                             {},
-                             context_instance=RequestContext(request))
-
-#==============================================================================
-#
 # "forgotPassword": Forgot password page
 #
 #==============================================================================
@@ -725,7 +714,7 @@ def forgotPassword( request, check = None ):
 
     forup = SignupForm()
     forin = SigninForm()
-    return render_to_response(  'forgot_password.html',
+    return render_to_response(  'forgotPassword.html',
                                 {'form': form,
                                  'forup':  forup,
                                  'forin':  forin,
