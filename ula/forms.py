@@ -317,7 +317,7 @@ class MyprofileForm(forms.Form):
                                         max_length      = 128,
 					placeholder     = 'Enter e-mail address'    )
 
-    birth    	= FieldText(            label           = ' Birthday',
+    birth    	= FieldText(            label           = 'Birthday',
                                         max_length      = 128,
                                         placeholder     = 'Enter birthday',
                                         attrs           = {"id":"datePik"})
@@ -374,3 +374,67 @@ class MyprofileForm(forms.Form):
 
 	user.save()
 	return user
+
+class NewUserForm(forms.Form):
+    name        = FieldText(            label           = '* Full name',
+                                        max_length      = 128,
+                                        placeholder     = 'Enter full name'         )
+
+    email       = FieldEmail(           label           = '* E-mail',
+                                        max_length      = 128,
+                                        placeholder     = 'Enter e-mail address'    )
+
+    address     = FieldTextarea(        label           = 'Address',
+                                        placeholder     = 'Enter address',
+                                        attrs           = { "rows": "2"}            )
+
+    phone       = FieldPhone(           label           = 'Phone',
+                                        max_length      = 128,
+                                        placeholder     = 'Enter phone number'      )
+
+    birth       = FieldText(            label           = 'Birthday',
+                                        max_length      = 128,
+                                        placeholder     = 'Enter birthday',
+                                        attrs           = {"id":"datePik"}          )
+    balance     = FieldInteger(         label           = '* Number of classes left',
+                                        placeholder     = 'Enter balance'           )
+    waiver      = FieldCheckBox(        label           = 'Waiver'                  )
+    admin       = FieldCheckBox(        label           = 'Admin'                   )
+                                        
+
+#------------------------------------------------------------------------------                                                                                                                            
+# Check for email address                                                                                                                                                                                  
+#------------------------------------------------------------------------------                                                                                                                            
+
+    def clean_email( self ):
+        email           = self.data['email'].lower()
+        try:
+            user        = User.objects.get( email__exact = email )
+            raise forms.ValidationError( 'Email address already exists' )
+        except User.DoesNotExist:
+            pass
+
+#------------------------------------------------------------------------------                                                                                                                            
+# Save the information in the data base                                                                                                                                                                    
+#------------------------------------------------------------------------------ 
+
+    def save( self ):
+        today                   = datetime.datetime.today()
+        user                    = User()
+        user.name               = self.data['name'].title()
+        user.email              = self.data['email'].lower()
+        user.password           = util.encryptPass(str(random.random()))
+        user.address            = self.data['address'].lower()
+        user.phone              = self.data['phone']
+        user.lastAccess         = today
+        user.balance            = int(str(self.data['balance']))
+        user.waiverSigned       = True if self.data.has_key("waiver")  else False
+        user.facebook           = False
+        user.notes              = ""
+        user.dateCreated        = today
+        user.userType           = 1 if self.data.has_key("admin") else 0
+        user.idleTime           = 10
+        user.birthday           = datetime.date(1970, 1, 1)
+        user.birthdayAssigned   = False
+        user.save()
+        return user

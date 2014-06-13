@@ -323,11 +323,28 @@ def classSignup(request, check=None):
 #
 #==============================================================================
 
-def students( request, sortBy="name0", page="1", range="all"):
+def students( request, sortBy="name0", page="1", range="all", checkSignup=None):
 
     user, errUrl = GetValidUser(request)
     if errUrl:
         return HttpResponseRedirect(errUrl)
+
+    # Add new user validation and forms
+    # if checking for psignup                                                                                                                                                                               
+    if checkSignup is not None:
+        form = NewUserForm(request.GET.copy())
+        if form.is_valid():
+            user = form.save()
+
+            url     = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
+            json = util.JsonLoad(               url             )
+        else:
+            json = util.JsonFormError(form)
+        return HttpResponse(json,
+                            mimetype='application/json')
+
+    # Make form
+    newUserForm = NewUserForm()
 
     userList = list(User.objects.all())
 
@@ -341,7 +358,8 @@ def students( request, sortBy="name0", page="1", range="all"):
     currPage	= 4
     nPages	= 4
     nStudents	= len( userList )
-    url		= request.get_full_path()[:-1]
+    #url		= request.get_full_path()[:-1]
+    url     = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
 
     return render_to_response( 'students.html',
                                {'userName':	user.name,
@@ -351,6 +369,7 @@ def students( request, sortBy="name0", page="1", range="all"):
 				'currPage':	currPage,
 				'nPages':	nPages,
 				'url':		url,
+                                'newUserForm':  newUserForm,
                                 },
                                context_instance=RequestContext(request) )
 

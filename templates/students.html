@@ -11,6 +11,7 @@
 <!--=== Content Part ===-->
 {% block content %}
 <div class="container">
+<!--=== Add Student ===-->
 
  <!--=== Header (filter/sort) --->
  <div class="row student-row-block">
@@ -62,9 +63,27 @@
   <div class="col-sm-4 col-xs-6">
    <ul class="list-inline pull-right">
     <li class="dropdown" title="Add a new student">
-     <a id="addStudent" class="dropdown-toggle" data-toggle="dropdown">
-      <i class="glyphicon glyphicon-user oola"></i>
-     </a>
+     <a id="addStudent-dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="glyphicon glyphicon-user oola"></i></a>
+       <div id="addStudent" class="dropdown-menu oola-flush-right">
+	 <form id="formup" method="post" style="margin-top: 10px;" action="/students/" novalidate> <!-- hitching on with the signup form validation -->
+           {% csrf_token %}
+             {% for field in newUserForm %}
+	        <div class="form-group">
+                  <div class="input-group">
+
+		    {% if field.label == "Admin" or field.label == "Waiver" %} 
+		      {{ field.label }}
+		    {% endif %}
+
+		    {{ field }}
+		  </div>
+		</div>
+	     {% endfor %}
+             <p class="text-center">
+               <button class="btn-u btn-primary" type="submit" id="register_submit">Register</button>
+             </p>
+         </form>
+       </div>
     </li>
     <li class="dropdown" title="Upload students (in CSV)">
      <a id="uploadStudent" class="dropdown-toggle" data-toggle="dropdown">
@@ -182,4 +201,14 @@
    );
   });
  </script>
+
+<link href="/media/css/datepicker.css" rel="stylesheet"/>
+<script src="media/js/bootstrap-datepicker.js"></script>
+<script>
+ jQuery(document).ready(function() {
+        jQuery('#datePik').datepicker({
+                format: 'yyyy-mm-dd' });
+ });
+</script>
+
 {% endblock %}	
