@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}My Profile{% endblock %}
-
-<!--=== Content Part ===-->
+{% block title %} Edit Student {% endblock %}
+{% block head_extras %} {% endblock %}
 {% block content %}
-<div class="container">		
+<div class="container">
  <div class="row">
   <div class="col-sm-3 col-xs-0"></div>
   <div class="col-sm-6 col-xs-12 oola-form-block">
-   <h3>My profile</h3>
-   <form id="form" method="post" action="/myprofile/" novalidate>{% csrf_token %}
-    {% for field in form %}
-     <div class="row" style="margin:5px;">
-      {% if not field.is_hidden %}
-       <span class="col-sm-3 text-right">{{ field.label }}:</span>
-      {% endif %} 
-      <span class="col-sm-9">{{ field }}</span>
-     </div>
+   <h3>Edit Student</h3>
+   
+   <form id="form" method="post" action="." novalidate>{% csrf_token %}
+    {% for field in editUserForm %}
+      <div class="row" style="margin:5px;">
+	{% if not field.is_hidden %}
+          <span class="col-sm-3 text-right">{{ field.label }}:</span>
+	{% endif %}
+	<span class="col-sm-9">{{ field }}</span>
+      </div>
     {% endfor %}
     {% if userType != 0 %}
      <div class="row" style="margin:5px;">
@@ -36,23 +36,22 @@
      <span class="col-sm-3"></span>
      <span class="col-sm-9">
       <button class="btn-u btn-primary" type="submit">Save</button>
-      <a href="/home/" data-dismiss="modal" aria-hidden="true">Cancel</a>	
+      <a href="/students/{{ url }}" data-dismiss="modal" aria-hidden="true">Cancel</a>
      </span>
     </div>
    </form>
    &nbsp;
   </div>
  </div>
-</div><!--/container-->	
+</div><!--/container-->
 
 <link href="/media/css/datepicker.css" rel="stylesheet"/>
 <script src="media/js/bootstrap-datepicker.js"></script>
 <script>
  jQuery(document).ready(function() {
-	jQuery('#datePik').datepicker({
-		format: 'yyyy-mm-dd' });
+        jQuery('#datePik').datepicker({
+                format: 'yyyy-mm-dd' });
  });
 </script>
-	
-{% endblock %}	
-<!--=== End Content Part ===-->
+
+{% endblock %}

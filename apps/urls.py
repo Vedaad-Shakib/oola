@@ -30,10 +30,9 @@ urlpatterns = patterns('ula.views',
     url( r'^class/save/(?P<guests>[0-9]*)/(?P<userId>[0-9]+)/(?P<oldCount>[0-9]*)/?$', 'classSave'),
 
     url( r'^students/?$',				'students'	),
-    url( r'^students/(?P<checkSignup>checkSignup)/?$',                               'students'      ),
-    url( r'^students/(?P<sortBy>(name0|name1|bday0|bday1|waiver0|waiver1|balance0|balance1))/(?P<page>[0-9]+)/(?P<range>(all|year|month|week|day))/?$',
-							'students'),
-    url( r'^students/userpage/?$',			'userPage'),
+    url( r'^students/(?P<check>check)/?$',              'students'      ),
+
+    url( r'^students/edit/?$',      			'edit'          ),
 
     url( r'^clearance/?$',				'clearance'	),
 

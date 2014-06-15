@@ -119,14 +119,14 @@
 }
 
 .student-row-block {
-    background: rgba(255,255,255,0.85); 
+    background: rgba(255,255,255,0.75); 
     padding-top: 5px; 
     padding-bottom: 5px; 
     border: 2px solid #e67e22;
 }
 
 .student-item-block {
-    background: rgba(255,255,255,0.5); 
+    background: rgba(255,255,255,0.75); 
     padding: 7px 5px 10px 5px; 
     margin: 5px 0 5px 0; 
     border: 2px solid #777;

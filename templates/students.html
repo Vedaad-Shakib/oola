@@ -2,10 +2,24 @@
 {% block title %}Students{% endblock %}
 
 {% block head_extras %}
- <link href="../media/css/daterangepicker.css" rel="stylesheet">  
- <script src="../media/js/moment.min.js"></script>
- <script src="../media/js/daterangepicker.js"></script>
- <script src="../media/js/bsselect.js"></script>
+  <link href="../media/css/daterangepicker.css" rel="stylesheet">  
+  <script src="../media/js/moment.min.js"></script>
+  <script src="../media/js/daterangepicker.js"></script>
+  <script src="../media/js/bsselect.js"></script>
+  <script type="text/javascript">
+    // Using jQuery.
+
+    $(function() {
+      $('form').each(function() {
+        $(this).find('input').keypress(function(e) {
+          // Enter pressed?
+           if(e.which == 10 || e.which == 13) {
+             this.form.submit();
+           }
+         });
+       });
+     });
+</script>
 {% endblock %}
 
 <!--=== Content Part ===-->
@@ -15,7 +29,7 @@
 
  <!--=== Header (filter/sort) --->
  <div class="row student-row-block">
-  <form id="form" method="post" action="/students/" novalidate>{% csrf_token %}
+  <form id="form" method="get" action="." novalidate>{% csrf_token %}
    <div class="col-sm-3">
     <div class="input-group" title="Set range">
      <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
@@ -25,31 +39,57 @@
    <div class="col-sm-3">
     <div class="input-group" title="Filter students">
      <span class="input-group-addon"><i class="glyphicon glyphicon-filter"></i></span>
-     <select id="filterVal" class="form-control" onchange="submitCntrlForm('cntrlForm')" name="filterVal">
-      <option selected="selected" value="none">None</option>
-      <option value="Bday">Upcoming B-days</option>
-      <option value="Waver">Missing waivers</option>
-      <option value="Balance">Low balances</option>
+     <select id="filterVal" class="form-control" onchange="this.form.submit()" name="filter">
+       {% if filter == "bday" %}
+         <option value="none">None</option>
+         <option selected="selected" value="bday">Upcoming B-days</option>
+         <option value="waiver">Missing waivers</option>
+         <option value="balance">Low balances</option>
+       {% elif filter == "waiver" %}
+	 <option value="none">None</option>
+         <option value="bday">Upcoming B-days</option>
+         <option selected="selected" value="waiver">Missing waivers</option>
+         <option value="balance">Low balances</option>
+       {% elif filter == "balance" %}
+	 <option value="none">None</option>
+         <option value="bday">Upcoming B-days</option>
+         <option value="waiver">Missing waivers</option>
+         <option selected="selected" value="balance">Low balances</option>
+       {% else %}
+	 <option selected="selected" value="none">None</option>
+         <option value="bday">Upcoming B-days</option>
+         <option value="waiver">Missing waivers</option>
+         <option value="balance">Low balances</option>
+       {% endif %}
      </select>
     </div>
    </div>
    <div class="col-sm-3">
     <div class="input-group" title="Sort students">
      <span class="input-group-addon"><i class="glyphicon glyphicon-sort"></i></span>
-     <select id="sortVal" class="form-control" onchange="submitCntrlForm('cntrlForm')" name="sortVal">
-      <option selected="selected" value="Name">By name</option>
-      <option value="Balance">By balance</option>
-      <option value="Bday">By birthday</option>
-      <option value="Act">By activity</option>
+     <select id="sort" class="form-control" onchange="this.form.submit()" name="sort">
+      {% if sort == "activity"  %}
+        <option value="name">By name</option>
+        <option value="balance">By balance</option>
+        <option selected="selected" value="activity">By activity</option>
+      {% elif sort == "balance" %}
+	<option value="name">By name</option>
+        <option selected="selected" value="balance">By balance</option>
+        <option value="activity">By activity</option>
+      {% else %}
+	<option selected="selected" value="name">By name</option>
+        <option value="balance">By balance</option>
+        <option value="activity">By activity</option>
+      {% endif %}
      </select>
     </div>
    </div>
    <div class="col-sm-3">
-    <div class="input-group" title="Search a student">
-     <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
-     <input type="text" class="form-control" placeholder="Search a student" 
-      name="srch-term" id="srch-term">
-    </div>
+     <div class="input-group" title="Search a student">
+       <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+       <input type="text" class="form-control" placeholder="Search a student" 
+	      name="search" id="search">
+     </div>
    </div>
   </form>
  </div>
@@ -67,7 +107,7 @@
        <div id="addStudent" class="dropdown-menu oola-flush-right">
 	 <form id="formup" method="post" style="margin-top: 10px;" action="/students/" novalidate> <!-- hitching on with the signup form validation -->
            {% csrf_token %}
-             {% for field in newUserForm %}
+             {% for field in addUserForm %}
 	        <div class="form-group">
                   <div class="input-group">
 
@@ -102,7 +142,6 @@
 
  <!--=== Students--->
  <div class="row student-row-block margin-top-20">
-  {% for idx in "1234567" %}
   {% for user in userList %}
    <div class="col-md-3 col-sm-4"> 
     <div class="student-item-block">
@@ -121,7 +160,7 @@
       </div>
       <!-- Edit -->
       <div class="col-xs-1"> 
-       <a class="student-icon" href="/student/edit/{{ user.userId }}/" 
+       <a class="student-icon" href="/students/edit/?id={{ user.userId }}&url={{ url }}/" 
         title="Edit {{ user.name }}">
         <i class="glyphicon glyphicon-pencil"></i>
        </a>
@@ -158,7 +197,6 @@
      </div><!-- row -->
     </div>
    </div>
-  {% endfor %}
   {% endfor %}
  </div>
 

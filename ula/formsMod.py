@@ -6,7 +6,7 @@
 
 ###############################################################################
 ##
-## "forms.py":
+## "forms_user.py":
 ##
 ###############################################################################
 
@@ -317,7 +317,8 @@ class MyprofileForm(forms.Form):
                                         max_length      = 128,
 					placeholder     = 'Enter e-mail address'    )
 
-    birth    	= FieldDate(            label           = 'Birthday',
+    birth    	= FieldText(            label           = 'Birthday',
+                                        max_length      = 128,
                                         placeholder     = 'Enter birthday',
                                         attrs           = {"id":"datePik"})
 
@@ -391,7 +392,8 @@ class AddUserForm(forms.Form):
                                         max_length      = 128,
                                         placeholder     = 'Enter phone number'      )
 
-    birth       = FieldDate(            label           = 'Birthday',
+    birth       = FieldText(            label           = 'Birthday',
+                                        max_length      = 128,
                                         placeholder     = 'Enter birthday',
                                         attrs           = {"id":"datePik"}          )
     balance     = FieldInteger(         label           = '* Number of classes left',
@@ -444,37 +446,50 @@ class AddUserForm(forms.Form):
 ###############################################################################
 
 class EditUserForm(forms.Form):
-    userId      = FieldInteger(         label           = 'User Id',
-                                        visible         = False             )
-
     name        = FieldText(            label           = '* Full name',
                                         max_length      = 128,
-                                        placeholder     = 'Enter full name')
-    
+                                        placeholder     = 'Enter full name',
+                                        attrs           = {"value" = self.nameValue})
+
     email       = FieldEmail(           label           = '* E-mail',
                                         max_length      = 128,
-                                        placeholder     = 'Enter e-mail address')
-    
+                                        placeholder     = 'Enter e-mail address',
+                                        attrs           = {"value" = self.addressValue})
+
     address     = FieldTextarea(        label           = 'Address',
                                         placeholder     = 'Enter address',
-                                        attrs           = {"rows": 2})
-    
+                                        attrs           = { "rows": "2", "value": self.addressValue})
+
     phone       = FieldPhone(           label           = 'Phone',
                                         max_length      = 128,
-                                        placeholder     = 'Enter phone number')
-    
+                                        placeholder     = 'Enter phone number',
+                                        attrs           = {"value" = self.phoneValue})
+
     birthday    = FieldText(            label           = 'Birthday',
                                         max_length      = 128,
                                         placeholder     = 'Enter birthday',
-                                        attrs           = {"id":"datePik"})
-
+                                        attrs           = {"id":"datePik", "value": birthdayValue})
     balance     = FieldInteger(         label           = '* Number of classes left',
-                                        placeholder     = 'Enter balance')
-
+                                        placeholder     = 'Enter balance',
+                                        attrs           = {"value" = self.balanceValue})
+    waiver      = FieldCheckBox(        label           = 'Waiver',
+                                        attrs           = {"checked": "checked" if self.waiverValue else "unchecked"})
+    admin       = FieldCheckBox(        label           = 'Admin',
+                                        attrs           = {"checked": "checked" if self.adminValue == 1 else "unchecked"})
     notes       = FieldTextarea(        label           = 'Notes',
                                         max_length      = 1024,
                                         placeholder     = 'Enter notes',
-                                        attrs           = { "rows": "2"})
+                                        attrs           = { "rows": "2", "value": self.notesValue}) 
+    def __init__( self, user):
+        self.nameValue = user.name
+        self.emailValue = user.email
+        self.addressValue = user.address
+        self.phoneValue = user.phone
+        self.birthdayValue = user.birthday
+        self.balanceValue = user.balance
+        self.waiverValue = user.waiver
+        self.adminValue = user.admin
+        self.notesValue = user.notes
 #------------------------------------------------------------------------------                                                                                                               
 # Check for email address                                                                                                                                                                                
 #------------------------------------------------------------------------------                                                                                                                      
@@ -492,27 +507,14 @@ class EditUserForm(forms.Form):
 #------------------------------------------------------------------------------ 
 
     def save( self ):
-        userId = int(self.data['userId'])
         user = User.objects.get(userId = userId)
         user.name               = self.data['name'].title()
         user.email              = self.data['email'].lower()
         user.address            = self.data['address'].lower()
-        user.phone              = int(self.data['phone'])
-        user.birthday           = datetime.datetime.strptime(self.data['birthday'].strip(), '%Y-%m-%d')
-        user.balance            = int(self.data['balance'])
+        user.phone              = self.data['phone']
+        user.balance            = int(str(self.data['balance']))
         user.waiverSigned       = True if self.data.has_key("waiver")  else False
         user.notes              = self.data['notes']
         user.userType           = 1 if self.data.has_key("admin") else 0
-        if self.data.has_key( "adminType" ):
-            if self.data['adminType'] == "Y":
-                user.userType   = 1
-            else:
-                user.userType   = 0
-
-        if self.data.has_key( "waiver" ):
-            if self.data['waiver'] == "Y":
-                user.waiverSigned   = True
-            else:
-                user.waiverSigned   = False
         user.save()
         return user

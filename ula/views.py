@@ -15,11 +15,12 @@ from django.conf       import settings
 from django.template   import RequestContext
 from django.http       import HttpResponseRedirect
 from django.http       import HttpResponse
+from django.db.models  import Q
 
 import cookies
 import math
 import operator
-import datetime
+from datetime import datetime, timedelta
 import json
 
 from forms import *
@@ -316,6 +317,28 @@ def classSignup(request, check=None):
                                   {'form': form,
                                    'name': name},
                                   context_instance=RequestContext(request))
+# Gets all people with birthdays within given number of days
+def birthdaysWithin(days):
+
+    now = datetime.datetime.now()
+    then = now + timedelta(days)
+
+    # Build the list of month/day tuples.
+    monthdays = [(now.month, now.day)]
+    while now <= then:
+        monthdays.append((now.month, now.day))
+        now += timedelta(days=1)
+
+    # Tranform each into queryset keyword args.
+    monthdays = (dict(zip(("birthday__month", "birthday__day"), t)) 
+                 for t in monthdays)
+
+
+    # Compose the djano.db.models.Q objects together for a single query.
+    query = reduce(operator.or_, (Q(**d) for d in monthdays))
+
+    # Run the query.
+    return User.objects.filter(query)
 
 #==============================================================================
 #
@@ -323,20 +346,42 @@ def classSignup(request, check=None):
 #
 #==============================================================================
 
-def students( request, sortBy="name0", page="1", range="all", checkSignup=None):
-
+def students( request, check=None):
+    
+    # idle?
     user, errUrl = GetValidUser(request)
     if errUrl:
         return HttpResponseRedirect(errUrl)
 
+     # Get "get" values                                                                                                                                              
+    try:
+        sort = str(request.GET['sort'])
+    except:
+        sort = "name"
+    try:
+        filter = str(request.GET['filter'])
+    except:
+        filter = None
+    try:
+        page = int(request.GET['page'])
+    except:
+        page = 1
+    try:
+        search = str(request.GET['search'])
+    except:
+        search = None
+    try:
+        range = str(request.GET['range'])
+    except:
+        range = "all"
+    
     # Add new user validation and forms
-    # if checking for psignup                                                                                                                                                                               
-    if checkSignup is not None:
-        form = NewUserForm(request.GET.copy())
+    if check is not None:
+        form = AddUserForm(request.GET.copy())
         if form.is_valid():
             user = form.save()
 
-            url     = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
+            url     = '/students/' + str(sort) + "/" + str(page) + "/" + str(range) + "/"
             json = util.JsonLoad(               url             )
         else:
             json = util.JsonFormError(form)
@@ -344,22 +389,48 @@ def students( request, sortBy="name0", page="1", range="all", checkSignup=None):
                             mimetype='application/json')
 
     # Make form
-    newUserForm = NewUserForm()
+    addUserForm = AddUserForm()
+    
+    # Get user list with filters (bday, waiver, balance)
+    if filter == "bday":
+        userList = birthdaysWithin(7)
+    elif filter == "balance":
+        userList = User.objects.filter(balance__lte=3)
+    elif filter == "waiver":
+        userList = User.objects.filter(waiverSigned=False)
+    else:
+        userList = User.objects.all()
+    
+    # Filter user list by search
+    if search is not None:
+        userList = userList.filter(name__icontains=str(search))
+    print userList
+    
+    # Make userList a list so we can sort
+    userList = list(userList)
 
-    userList = list(User.objects.all())
+    # Sort by
+    if str(sort) == "name":
+        userList.sort(key=operator.attrgetter("name"))
+    elif str(sort) == "activity":
+        userList.sort(key=operator.attrgetter("lastAccess"))
+    else:
+        userList.sort(key=operator.attrgetter("balance"))
+        
+        
 
     now	= datetime.datetime.now()
     for user in userList:
 	bday			= user.birthday
-	user.hasBirthday	= (bday.year != 1970)
+	user.hasBirthday	= (bday.year != 1970 and bday.month != 1 and bday.day != 1)
 	user.showBirthday	= (user.userId == 1)	# check Bday within 2 days
 	user.recent		= ((now - user.lastAccess).total_seconds() < 2*24*3600)
 
     currPage	= 4
     nPages	= 4
     nStudents	= len( userList )
-    #url		= request.get_full_path()[:-1]
-    url     = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
+    url		= request.get_full_path()[:-1]
+    #url     = str(sortBy) + "/" + str(page) + "/" + str(range)
 
     return render_to_response( 'students.html',
                                {'userName':	user.name,
@@ -369,7 +440,9 @@ def students( request, sortBy="name0", page="1", range="all", checkSignup=None):
 				'currPage':	currPage,
 				'nPages':	nPages,
 				'url':		url,
-                                'newUserForm':  newUserForm,
+                                'addUserForm':  addUserForm,
+                                'sort':         sort,
+                                'filter':       filter,
                                 },
                                context_instance=RequestContext(request) )
 
@@ -659,11 +732,59 @@ def clearance(request):
 
 #==============================================================================
 #
-# "userPage": The more information page
+# "edit": A page in which Ula can edit a student's information
 #
 #==============================================================================
 
-def userPage(request):
+def edit(request, check=None):
+
+    user, errUrl = GetValidUser(request)
+    if errUrl:
+        return HttpResponseRedirect(errUrl)
+
+    try:
+        userId = request.GET['id']
+    except:
+        return HttpResponseRedirect('/students/name0/1/all/')
+    try:
+        url = request.GET['url']
+    except:
+        url = 'name0/1/all/'
+
+    if check is not None:
+        data    = request.GET.copy()
+        form    = EditUserForm(data)
+
+        if form.is_valid():
+            form.save()
+            url = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
+            json = util.JsonLoad(url)
+        else:
+            json = util.JsonFormError(form)
+        return HttpResponse(json,
+                            mimetype='application/json')
+    
+    user = User.objects.get(userId = userId)
+
+    editUserForm = EditUserForm(initial = {'userId':    user.userId,
+                                           'name':      user.name,
+                                           'email':     user.email,
+                                           'address':   user.address,
+                                           'phone':     user.phone,
+                                           'birthday':  user.birthday.date(),
+                                           'balance':   user.balance,
+                                           'notes':     user.notes
+                                           }
+                                )
+
+    return render_to_response('edit.html',
+                              {'userId': userId,
+                               'url': url,
+                               'editUserForm': editUserForm,
+                               },
+                              context_instance=RequestContext(request))
+
+def xedit(request, check=None):
     try:
         userId = request.GET['id']
     except:
@@ -674,31 +795,29 @@ def userPage(request):
     except:
         url = 'name0/1/all/'
 
-    user = User.objects.get(userId=userId)
+    if check is not None:
+        form = EditUserForm(request.GET.copy())
+        if form.is_valid():
+            user = form.save(userId)
 
-    name = user.name
-    birthday = ''  if user.birthdayAssigned == False else str(user.birthday.date())
-    balance = user.balance
-    email = user.email
-    address = user.address
-    waiverSigned = "1" if user.waiverSigned else "-1"
-    facebookConnected = "1" if user.facebook else "-1"
-    notes = user.notes if user.notes else "Extra Notes"
+            url     = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
+            json = util.JsonLoad(               url             )
+        else:
+            json = util.JsonFormError(form)
+        return HttpResponse(json,
+                            mimetype='application/json')                
+
+    user = User.objects.get(userId=userId)
+    editUserForm = EditUserForm(user)
+
     userId = user.userId
 
-    return render_to_response('notes.html',
-                                      {'name': name,
-                                       'birthday': birthday,
-                                       'email': email,
-                                       'address': address,
-                                       'waiverSigned': waiverSigned,
-                                       'facebookConnected': facebookConnected,
-                                       'notes': notes,
-                                       'balance': balance,
-                                       'userId': userId,
-                                       'url': url,
-                                       },
-                                      context_instance=RequestContext(request))
+    return render_to_response('edit.html',
+                              {'editUserForm': editUserForm,
+                               'userId': userId,
+                               'url': url,
+                               },
+                              context_instance=RequestContext(request))
 
 #==============================================================================
 #
@@ -844,7 +963,7 @@ def chkValidForgotCode( forgotCode ):
 
 #==============================================================================
 #
-# "myprofile":
+# "myprofile": Allows students to change their information
 #
 #==============================================================================
 
