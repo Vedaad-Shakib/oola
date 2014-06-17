@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+
+{% block head_extras %}
+ <link href="../media/css/daterangepicker.css" rel="stylesheet">  
+ <script src="../media/js/moment.min.js"></script>
+ <script src="../media/js/daterangepicker.js"></script>
+ <script src="../media/js/bsselect.js"></script>
+{% endblock %}
+
+<!--=== Content Part ===-->
+{% block content %}
+<div class="container">
+
+ <!--=== Header (filter/sort) --->
+ <div class="row student-row-block">
+  <form id="form" method="post" action="/history/" novalidate>{% csrf_token %}
+   <div class="col-sm-3">
+    <div class="input-group" title="Set range">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+     <span class="form-control" id="daterange"><span>Today</span><b class="caret"></b></span>
+    </div>
+   </div>
+   <div class="col-sm-3">
+    <div class="input-group" title="Filter history">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-filter"></i></span>
+     <select id="filterVal" class="form-control" onchange="submitCntrlForm('cntrlForm')" name="filterVal">
+      <option selected="selected" value="attendance">Attendance</option>
+      <option value="purchases">Purchases</option>
+     </select>
+    </div>
+   </div>
+   <div class="col-sm-3">
+    <div class="input-group" title="Sort history">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-sort"></i></span>
+     <select id="sortVal" class="form-control" onchange="submitCntrlForm('cntrlForm')" name="sortVal">
+      <option selected="selected" value="date">By date</option>
+      <option value="name">By name</option>
+     </select>
+    </div>
+   </div>
+   <div class="col-sm-3">
+    <div class="input-group" title="Search a student">
+     <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+     <input type="text" class="form-control" placeholder="Search a student" 
+      name="srch-term" id="srch-term">
+    </div>
+   </div>
+  </form>
+ </div>
+
+ <!--=== Chart --->
+ {% if chartData %}
+  <div class="row student-row-block margin-top-20">
+   <div class="col-lg-2 col-md-1 col-sm-0 col-xs-0"></div>
+   <div class="col-lg-8 col-md-10 col-sm-12 col-xs-12">
+    {% include "chart.html" %}
+   </div>
+  </div>
+ {% endif %}
+
+ <!--=== History--->
+ <div class="row student-row-block margin-top-20">
+  <div class="col-lg-2 col-md-1 col-sm-0 col-xs-0"></div>
+  <div class="col-lg-8 col-md-10 col-sm-12 col-xs-12">
+   <table class="table table-striped table-bordered table-hover oola-history-table">
+    <thead>
+     <tr>
+      <th class="oola-th">Date</th>
+      <th class="oola-th">Name</th>
+      {% if dispType == "Attendance" %}<th class="oola-th">No. Attending</th>{% endif %}
+      {% if dispType == "Purchases" %}<th class="oola-th">Classes Bought</th>{% endif %}
+     </tr>
+    </thead>
+    <tbody>
+     {% for idx in "1" %}
+      {% for rec in dispList %}
+       <tr>
+        <td class="oola-td">{{ rec.dateTime  }}</td>
+        <td class="oola-td">{{ rec.name  }}</td>
+        {% if dispType == "Attendance" %}<td class="oola-td">{{ rec.DancerNumber }}</td>{% endif %}
+        {% if dispType == "Purchases" %}<td class="oola-td">{{ rec.classes }}</td>{% endif %}
+       </tr>
+      {% endfor %}
+     {% endfor %}
+    </tbody>
+   </table>
+  </div>
+ </div>
+
+ <!--=== Pagination--->
+ {% if nPages > 1 %}
+  <div class="row student-row-block margin-top-20">
+   <div class="col-md-12 col-xs-12 col-sm-12 col-lg-12">
+    <div class="center">
+    {% include "pagination.html" %}
+   </div>
+   </div>
+  </div>
+ {% endif %}
+
+ <p>&nbsp;</p>
+ <p>&nbsp;</p>
+</div><!--/container-->		
+{% endblock %}	
+<!--=== End Content Part ===-->
+
+{% block footer %}
+ <script>
+  $(document).ready(function() {
+   $("#daterange").daterangepicker({
+    ranges: {
+     "Today": [new Date(), new Date()],
+     "Yesterday": [moment().subtract("days", 1), moment().subtract("days", 1)],
+     "Last Week": [moment().subtract("days", 6), new Date()],
+     "Last 30 Days": [moment().subtract("days", 29), new Date()],
+     "This Month": [moment().startOf("month"), moment().endOf("month")],
+     "Last Month": [moment().subtract("month", 1).startOf("month"), moment().subtract("month", 1).endOf("month")],
+     "Max": [moment("Jan 1, 2014"), new Date()],
+    },
+    opens: "right",
+    format: "YYYY-MM-DD",
+    startDate: new Date(),
+    endDate: new Date(),
+    }, 
+    function(start, end) {
+     $("#daterange span").html(start.format("MMM D, YYYY") + " - " + end.format("MMM D, YYYY"));
+    }
+   );
+  });
+ </script>
+{% endblock %}	

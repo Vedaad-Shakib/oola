@@ -33,6 +33,8 @@ urlpatterns = patterns('ula.views',
     url( r'^students/(?P<check>check)/?$',              'students'      ),
 
     url( r'^students/edit/?$',      			'edit'          ),
+    
+    url( r'^history/?$',                                'history'       ),
 
     url( r'^clearance/?$',				'clearance'	),
 

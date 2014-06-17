@@ -8,6 +8,20 @@
     background-size:cover;
 }
 
+.oola-history-table {
+    background-color: rgba( 255, 255, 255, 0.75 ) ; 
+}
+
+.oola-th {
+    min-width: 50px; 
+    width=33%; 
+    text-align: center;
+}
+
+.oola-td {
+    text-align: center;
+}
+
 .tt-dropdown-menu {
     max-height: 150px;
     overflow-y: auto;

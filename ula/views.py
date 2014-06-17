@@ -317,7 +317,63 @@ def classSignup(request, check=None):
                                   {'form': form,
                                    'name': name},
                                   context_instance=RequestContext(request))
-# Gets all people with birthdays within given number of days
+
+#==============================================================================                                                                                                                   
+#                                                                                                                                                                                                     
+# "history": The attendance and transactions page                                                                                                                                                      
+#                                                                                                                                                                                                      
+#==============================================================================                                                                                                                          
+def history( request, filter="xxx", sortBy="xxx", page="1", search="xxx"):
+
+    user, errUrl = GetValidUser(request)
+    if errUrl:
+        return HttpResponseRedirect(errUrl)
+
+    dispType    = 'Attendance'
+    dispList    = list(Attendance.objects.all())
+
+    for item in dispList:
+        item.name       = item.userId.name
+
+    currPage    = 4
+    nPages      = 4
+    url         = request.get_full_path()
+
+    # Ved:                                                                                                                                                                                             
+    # accummulate data for each day in chartData, then pick up the first day of this data and put                                                                                                      
+    # it in chartB{Year,Month,Day}, subtract 1 from month                                                                                                                                               
+    if dispType == 'Attendance':
+        chartTitle      = "Student Attendance"
+        chartYTitle     = "No. Attendees"
+        chartSName      = "Attendees"
+        chartData       = [ 6, 5, 4, 0, 0, 3, 2, 7, 6, 6, 0, 0, 3, 3, 5, 6 ]
+        chartBYear      = 2014
+        chartBMonth     = 6 - 1
+        chartBDay       = 1
+
+    return render_to_response( 'history.html',
+                               {'userName':     user.name,
+                                'userType':     user.userType,
+                                'dispType':     dispType,
+                                'dispList':     dispList,
+                                'currPage':     currPage,
+                                'nPages':       nPages,
+                                'url':          url,
+                                'chartTitle':   chartTitle,
+                                'chartYTitle':  chartYTitle,
+                                'chartSName':   chartSName,
+                                'chartData':    chartData,
+                                'chartBYear':   chartBYear,
+                                'chartBMonth':  chartBMonth,
+                                'chartBDay':    chartBDay,
+                                },
+                               context_instance=RequestContext(request) )
+#============================================================================== 
+##
+## Gets all people with birthdays within given number of days
+##
+#============================================================================== 
+
 def birthdaysWithin(days):
 
     now = datetime.datetime.now()

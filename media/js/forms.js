@@ -52,6 +52,10 @@ jQuery( function() {
     return (/^((([0]?[1-9]|1[0-2])(:|\.)[0-5][0-9]((:|\.)[0-5][0-9])?( )?(AM|am|aM|Am|PM|pm|pM|Pm))|(([0]?[0-9]|1[0-9]|2[0-3])(:|\.)[0-5][0-9]((:|\.)[0-5][0-9])?))$/.test(value)) || (value == "") ? true : false ;
   }, "Please enter a valid time" );
 
+  jQuery.validator.addMethod( "date", function(value, element) { 	
+    return (/^((19)[7-9]\d|(20)[01]\d)[\.\-/](0?[1-9]|1[0-2])[\.\-/](0?[1-9]|[12]\d|3[01])$/.test(value)) || (value == "") ? true : false ;
+  }, "Please enter a valid date" );
+
   jQuery.validator.addMethod( "file", function(value, element) {
     var ext = element.getAttribute("extension");
     if ( ext ){

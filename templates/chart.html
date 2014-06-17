@@ -1,0 +1,67 @@
+<!-- Chart for History -->
+
+<script src="/media/js/highcharts.js"></script>
+<script src="/media/js/exporting.js"></script>
+
+<div id="chart" 
+style="min-width: 300px; height: 250px; padding: 0px; margin: 5px 0px 5px 0px;
+background: rgba(255,255,255,0.5);"></div>
+
+<script>
+$(function () {
+    $('#chart').highcharts({
+	chart: {
+	    zoomType: 'x'
+	},
+	title: {
+	    text: '{{ chartTitle }}'
+	},
+	xAxis: {
+	    type: 'datetime',
+	    minRange: 7 * 24 * 3600000, // seven days
+	    title: {
+		text: 'Date'
+	    },
+	    startOfWeek: 1,
+	},
+	yAxis: {
+	    title: {
+		text: '{{ chartYTitle }}'
+	    },
+	    min: 0
+	},
+	legend: {
+	    enabled: false
+	},
+	plotOptions: {
+	    area: {
+		fillColor: {
+		    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+		    stops: [
+			[0, Highcharts.getOptions().colors[0]],
+			[1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+		    ]
+		},
+		marker: {
+		    radius: 2
+		},
+		lineWidth: 1,
+		states: {
+		    hover: {
+			lineWidth: 1
+		    }
+		},
+		threshold: null
+	    }
+	},
+	series: [{
+	    type: 'area',
+	    name: '{{ chartSName }}',
+	    pointInterval: 24 * 3600000,
+	    pointStart: Date.UTC({{ chartBYear }}, {{ chartBMonth }}, {{ chartBDay }}),
+	    data: {{ chartData }} 
+	}]
+    });
+});
+</script>
+    

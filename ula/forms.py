@@ -318,7 +318,7 @@ class MyprofileForm(forms.Form):
 					placeholder     = 'Enter e-mail address'    )
 
     birth    	= FieldDate(            label           = 'Birthday',
-                                        placeholder     = 'Enter birthday',
+                                        placeholder     = 'Enter birthday: yyyy-mm-dd',
                                         attrs           = {"id":"datePik"})
 
     phone       = FieldPhone(           label           = 'Phone',
@@ -356,8 +356,12 @@ class MyprofileForm(forms.Form):
 	user			= User.objects.get( userId = userId )
 	user.name	        = self.data['name'].strip().title()
         user.email		= self.data['email'].strip().lower()
-        user.birthday           = datetime.datetime.strptime(self.data['birth'].strip(),
-                                                             '%Y-%m-%d')
+        birth                   = self.data['birth'].strip()
+        if birth:
+            birth               = birth.replace(".","-")
+            birth               = birth.replace("/","-")
+            user.birthday       = datetime.datetime.strptime(birth,'%Y-%m-%d')
+
 	user.address	        = self.data['address'].strip()
         user.phone		= self.data['phone'].strip()
 	user.idleTime           = int( self.data['idleTime'].strip() )
@@ -392,7 +396,7 @@ class AddUserForm(forms.Form):
                                         placeholder     = 'Enter phone number'      )
 
     birth       = FieldDate(            label           = 'Birthday',
-                                        placeholder     = 'Enter birthday',
+                                        placeholder     = 'Enter birthday: yyyy-mm-dd',
                                         attrs           = {"id":"datePik"}          )
     balance     = FieldInteger(         label           = '* Number of classes left',
                                         placeholder     = 'Enter balance'           )
@@ -432,7 +436,11 @@ class AddUserForm(forms.Form):
         user.dateCreated        = today
         user.userType           = 1 if self.data.has_key("admin") else 0
         user.idleTime           = 10
-        user.birthday           = datetime.date(1970, 1, 1)
+        birth                   = self.data['birth'].strip()
+        if birth:
+            birth               = birth.replace(".","-")
+            birth               = birth.replace("/","-")
+            user.birthday       = datetime.datetime.strptime(birth,'%Y-%m-%d')
         user.birthdayAssigned   = False
         user.save()
         return user
@@ -463,9 +471,8 @@ class EditUserForm(forms.Form):
                                         max_length      = 128,
                                         placeholder     = 'Enter phone number')
     
-    birthday    = FieldText(            label           = 'Birthday',
-                                        max_length      = 128,
-                                        placeholder     = 'Enter birthday',
+    birth    = FieldDate(               label           = 'Birthday',
+                                        placeholder     = 'Enter birthday: yyyy-mm-dd',
                                         attrs           = {"id":"datePik"})
 
     balance     = FieldInteger(         label           = '* Number of classes left',
@@ -498,7 +505,13 @@ class EditUserForm(forms.Form):
         user.email              = self.data['email'].lower()
         user.address            = self.data['address'].lower()
         user.phone              = int(self.data['phone'])
-        user.birthday           = datetime.datetime.strptime(self.data['birthday'].strip(), '%Y-%m-%d')
+
+        birth                   = self.data['birth'].strip()
+        if birth:
+            birth               = birth.replace(".","-")
+            birth               = birth.replace("/","-")
+            user.birthday       = datetime.datetime.strptime(birth,'%Y-%m-%d')
+
         user.balance            = int(self.data['balance'])
         user.waiverSigned       = True if self.data.has_key("waiver")  else False
         user.notes              = self.data['notes']

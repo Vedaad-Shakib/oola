@@ -141,13 +141,15 @@ class FieldDate(forms.CharField):
 
 	attrs			= attrs.copy()
 	attrs['size']		= '30'
+	attrs['class']		= 'inputtext ' + extraClass
+	attrs['date']		= '1'
 	if required: attrs['required']	= 'required'
 	if placeholder: attrs['placeholder'] = placeholder
 
 	if visible:
-	    widget		= EmailInput( attrs = attrs	)
+	    widget		= forms.TextInput(  attrs = attrs	)
 	else:
-	    widget		= forms.HiddenInput( attrs = attrs	)
+	    widget		= forms.HiddenInput(attrs = attrs	)
 
 	super(FieldDate,self).__init__(	
 			label		= label,
