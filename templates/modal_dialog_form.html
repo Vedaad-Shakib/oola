@@ -1,0 +1,53 @@
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+	<h3> {{ title }}</h3>
+   </div>
+ <div class="modal-body">
+ <form id="editStudentFrm"  method="post" action="{{ actionUrl }}" novalidate>{% csrf_token %}
+   {% for field in form %}
+      <div class="row form-group" style="margin:5px;">
+	{% if not field.is_hidden %}
+          <span class="col-sm-3 text-right">{{ field.label }}:</span>
+	{% endif %}
+	<span class="col-sm-9">{{ field }}</span>
+      </div>
+    {% endfor %}
+    {% if userType != 0 %}
+     <div class="row" style="margin:5px;">
+      <span class="col-sm-3 text-right">Admin privilege:</span>
+      <span class="col-sm-9">
+       <select  name="adminType" title="Admin Setting" required="required">
+         <option selected="selected" value="Y">
+             Yes
+         </option>
+         <option value="N">
+             No
+         </option>
+       </select>
+      </span>
+     </div>
+    {% endif %}
+    <div class="row" style="margin:5px;">
+     <span class="col-sm-3"></span>
+     <span class="col-sm-9">
+      <button class="btn-u btn-primary" type="submit">{{ submitVal }}</button>&nbsp;
+      <a href="" data-dismiss="modal" aria-hidden="true">Cancel</a>
+     </span>
+    </div>
+  </form>
+ </div>
+</div>
+
+<link href="/media/css/datepicker.css" rel="stylesheet"/>
+<style>
+.datepicker {z-index: 1151 !important;}
+</style>
+<script src="media/js/forms.js"></script>
+<script src="media/js/bootstrap-datepicker.js"></script>
+<script>
+ jQuery(document).ready(function() {
+        jQuery('#datePik').datepicker({
+                format: 'yyyy-mm-dd' });
+ });
+</script>

@@ -19,6 +19,7 @@ from django.db.models  import Q
 
 import cookies
 import math
+import csv
 import operator
 from datetime import datetime, timedelta
 import json
@@ -26,6 +27,8 @@ import json
 from forms import *
 from cookies import *
 from email_util import *
+
+import      paginator
 
 #==============================================================================
 #
@@ -158,7 +161,7 @@ def classCheckRecent(request):
     try:
         user    = User.objects.get(name = request.GET["name"] )
         currTime= datetime.datetime.now()
-        lst10Min= currTime - datetime.timedelta(minutes = 10)        
+        lst10Min= currTime - datetime.timedelta(minutes = 10)
         lstAttendance = Attendance.objects.get(userId = user.userId,
                                               dateTime__gt = lst10Min
                                               )
@@ -184,7 +187,22 @@ def classCancel(request, totalGuests, userId, attendanceId):
     Attendance.objects.filter(attendanceId = attendanceId).delete()
     user = User.objects.get(userId=userId)
     user.balance = user.balance + 1 + int(str(totalGuests))
+
+    user.lastAccess         = datetime.datetime.now(            )
     user.save()
+
+    #----------------------------------------------------------------------
+    # Set the recent change
+    #----------------------------------------------------------------------
+
+    rcntChg                     = RecentChange(                     )
+    rcntChg.userId              = user
+    rcntChg.change              = "Balance"
+    rcntChg.value               = str( user.balance )
+    rcntChg.dateTime            = datetime.datetime.now(            )
+    rcntChg.save(                                                   )
+
+    
     return HttpResponseRedirect('/class/')
 
 #==============================================================================
@@ -203,6 +221,7 @@ def classSave(request, guests, userId, oldCount):
     # update the counts and balance
     newCount = guests + 1
     user.balance = user.balance - newCount + oldCount
+    user.lastAccess         = datetime.datetime.now(            )
     user.save()
     # remove old records
     attendanceList = list(Attendance.objects.filter(userId = user.userId))
@@ -217,6 +236,25 @@ def classSave(request, guests, userId, oldCount):
     attendance.dateTime = datetime.datetime.today()
     attendance.DancerNumber = newCount
     attendance.save()
+
+    #----------------------------------------------------------------------
+    # Set the recent change
+    #----------------------------------------------------------------------
+
+    rcntChg                     = RecentChange(                     )
+    rcntChg.userId              = user
+    rcntChg.change              = "Balance"
+    rcntChg.value               = str( user.balance )
+    rcntChg.dateTime            = datetime.datetime.now(            )
+    rcntChg.save(                                                   )
+
+    rcntChg                     = RecentChange(                     )
+    rcntChg.userId              = user
+    rcntChg.change              = "Attendance (Dancer Number)"
+    rcntChg.value               = str( newCount )
+    rcntChg.dateTime            = datetime.datetime.now(            )
+    rcntChg.save(                                                   )
+
 
     return HttpResponseRedirect('/class/')
 
@@ -262,10 +300,11 @@ def classCheckin(request, userId = None):
             user.save()
         except:
             pass
-        
+
     # update the counts and balance
     newCount = guests + 1
     user.balance = user.balance - newCount + oldCount
+    user.lastAccess         = datetime.datetime.now(            )
     user.save()
     # remove old records
     attendanceList = list(Attendance.objects.filter(userId = user.userId))
@@ -280,6 +319,27 @@ def classCheckin(request, userId = None):
     attendance.dateTime = datetime.datetime.today()
     attendance.DancerNumber = newCount
     attendance.save()
+
+
+    #----------------------------------------------------------------------
+    # Set the recent change
+    #----------------------------------------------------------------------
+
+    rcntChg                     = RecentChange(                     )
+    rcntChg.userId              = user
+    rcntChg.change              = "Balance"
+    rcntChg.value               = str( user.balance )
+    rcntChg.dateTime            = datetime.datetime.now(            )
+    rcntChg.save(                                                   )
+
+    rcntChg                     = RecentChange(                     )
+    rcntChg.userId              = user
+    rcntChg.change              = "Attendance (Dancer Number)"
+    rcntChg.value               = str( newCount )
+    rcntChg.dateTime            = datetime.datetime.now(            )
+    rcntChg.save(                                                   )
+
+
     # confirm
     return render_to_response("classCheckin.html",
                               {"name": user.name,
@@ -318,47 +378,133 @@ def classSignup(request, check=None):
                                    'name': name},
                                   context_instance=RequestContext(request))
 
-#==============================================================================                                                                                                                   
-#                                                                                                                                                                                                     
-# "history": The attendance and transactions page                                                                                                                                                      
-#                                                                                                                                                                                                      
-#==============================================================================                                                                                                                          
-def history( request, filter="xxx", sortBy="xxx", page="1", search="xxx"):
+#==============================================================================
+#
+# "history": The attendance and transactions page
+#
+#==============================================================================
 
+def history( request, search = "" ):
     user, errUrl = GetValidUser(request)
     if errUrl:
         return HttpResponseRedirect(errUrl)
 
-    dispType    = 'Attendance'
-    dispList    = list(Attendance.objects.all())
+    return render_to_response( 'history.html',
+                               {'userName':	user.name,
+                                'userType':	user.userType,
+                                'sort':         "date",
+                                'filter':       "attendance",
+                                'currPage':     1,
+                                'search':       search
+                                },
+                               context_instance=RequestContext(request) )
+
+#==============================================================================
+#
+# "historyList": The history page
+#
+#==============================================================================
+
+def historyList( request ):
+
+    # Get "get" values
+    sort    = str(request.POST['sort'])
+    filter  = str(request.POST['filter'])
+    page    = int(request.POST['page'])
+    searchVal=str(request.POST['search']).strip()
+    dRange  = str(request.POST['range']).split("-")
+    try:
+        date1   = datetime.datetime.strptime( dRange[0].strip(),'%b %d, %Y')
+    except:
+        date1   = datetime.datetime.strptime( dRange[0].strip(),'%B %d, %Y')
+    try:
+        date2   = datetime.datetime.strptime( dRange[1].strip()+" 23:59:59",'%b %d, %Y %H:%M:%S')
+    except:
+        date2   = datetime.datetime.strptime( dRange[1].strip()+" 23:59:59",'%B %d, %Y %H:%M:%S')    
+
+    chartBYear  = date1.year
+    chartBMonth = date1.month - 1
+    chartBDay   = date1.day
+
+    if filter == "attendance":
+        dispType    = 'Attendance'
+        chartTitle  = "Student Attendance"
+        chartYTitle = "No. Attendees"
+        chartSName  = "Attendees"
+        dispList    = []
+        chartData   = []
+
+        chkDay      = date1
+        while chkDay <= date2:
+            strDay1     = chkDay.strftime("%m %d, %Y")
+            chkDay2     = datetime.datetime.strptime( strDay1 + " 23:59:59",'%m %d, %Y %H:%M:%S')
+            dayData     = 0
+            
+            if searchVal:
+                attndLst= Attendance.objects.filter( userId__name__icontains=searchVal,
+                                                     dateTime__range=(chkDay, chkDay2))
+            else:
+                attndLst= Attendance.objects.filter( dateTime__range=(chkDay, chkDay2) )
+                
+            for i in attndLst:
+                dayData += int( i.DancerNumber )
+                dispList.append(   i   )
+            chartData.append(   dayData     )
+            chkDay      += datetime.timedelta( days=1 )
+    else:
+        dispType    = 'Purchases'
+        chartTitle  = "Student Classes Bought"
+        chartYTitle = "Classes Bought"
+        chartSName  = "Purchases"
+        dispList    = []
+        chartData   = []
+
+        chkDay      = date1
+        while chkDay <= date2:
+            strDay1     = chkDay.strftime("%m %d, %Y")
+            chkDay2     = datetime.datetime.strptime( strDay1 + " 23:59:59",'%m %d, %Y %H:%M:%S')
+            dayData     = 0
+
+            if searchVal:
+                attndLst= Purchase.objects.filter( userId__name__icontains=searchVal,
+                                                   date__range=(chkDay, chkDay2))
+            else:
+                attndLst= Purchase.objects.filter( date__range=(chkDay, chkDay2) )
+
+            for i in attndLst:
+                dayData += int( i.numberOfClasses )
+                dispList.append(   i   )
+            chartData.append(   dayData     )
+            chkDay      += datetime.timedelta( days=1 )
 
     for item in dispList:
         item.name       = item.userId.name
+        
+    # Sort by
+    if sort == "name":
+        dispList.sort(key=operator.attrgetter("name"))
+    else:
+        if filter == "attendance":
+            dispList.sort(key=operator.attrgetter("dateTime"))
+        else:
+            dispList.sort(key=operator.attrgetter("date"))
 
-    currPage    = 4
-    nPages      = 4
-    url         = request.get_full_path()
+     
+    #---------------------------------------------------------------------
+    # Set the paginator object and get the current page data list
+    #---------------------------------------------------------------------
 
-    # Ved:                                                                                                                                                                                             
-    # accummulate data for each day in chartData, then pick up the first day of this data and put                                                                                                      
-    # it in chartB{Year,Month,Day}, subtract 1 from month                                                                                                                                               
-    if dispType == 'Attendance':
-        chartTitle      = "Student Attendance"
-        chartYTitle     = "No. Attendees"
-        chartSName      = "Attendees"
-        chartData       = [ 6, 5, 4, 0, 0, 3, 2, 7, 6, 6, 0, 0, 3, 3, 5, 6 ]
-        chartBYear      = 2014
-        chartBMonth     = 6 - 1
-        chartBDay       = 1
+    currPage        = page
+    pgintObj        = getPgintObj(request,          dispList,
+                                  currPage                              )
 
-    return render_to_response( 'history.html',
-                               {'userName':     user.name,
-                                'userType':     user.userType,
-                                'dispType':     dispType,
+    dispList        = pgintObj.getDataList(                             )
+
+    return render_to_response( 'historyInfo.html',
+                               {'dispType':     dispType,
                                 'dispList':     dispList,
                                 'currPage':     currPage,
-                                'nPages':       nPages,
-                                'url':          url,
+                                'paginator':    pgintObj,
                                 'chartTitle':   chartTitle,
                                 'chartYTitle':  chartYTitle,
                                 'chartSName':   chartSName,
@@ -366,13 +512,16 @@ def history( request, filter="xxx", sortBy="xxx", page="1", search="xxx"):
                                 'chartBYear':   chartBYear,
                                 'chartBMonth':  chartBMonth,
                                 'chartBDay':    chartBDay,
+                                'sort':         sort,
+                                'filter':       filter,
                                 },
                                context_instance=RequestContext(request) )
-#============================================================================== 
+
+#==============================================================================
 ##
 ## Gets all people with birthdays within given number of days
 ##
-#============================================================================== 
+#==============================================================================
 
 def birthdaysWithin(days):
 
@@ -386,7 +535,7 @@ def birthdaysWithin(days):
         now += timedelta(days=1)
 
     # Tranform each into queryset keyword args.
-    monthdays = (dict(zip(("birthday__month", "birthday__day"), t)) 
+    monthdays = (dict(zip(("birthday__month", "birthday__day"), t))
                  for t in monthdays)
 
 
@@ -398,55 +547,67 @@ def birthdaysWithin(days):
 
 #==============================================================================
 #
-# "students": The admin landing page
+# "students": The student control page
 #
 #==============================================================================
 
 def students( request, check=None):
-    
+    user, errUrl = GetValidUser(request)
+    if errUrl:
+        return HttpResponseRedirect(errUrl)
+
+    return render_to_response( 'students.html',
+                               {'userName':	user.name,
+                                'userType':	user.userType,
+                                'sort':         "name",
+                                'filter':       None,
+                                'currPage':     1,
+                                },
+                               context_instance=RequestContext(request) )
+
+#==============================================================================
+#
+# "studentList": The students page
+#
+#==============================================================================
+
+def studentList( request ):
+
     # idle?
     user, errUrl = GetValidUser(request)
     if errUrl:
         return HttpResponseRedirect(errUrl)
 
-     # Get "get" values                                                                                                                                              
+    # Get "get" values
+    sort    = str(request.POST['sort'])
+    filter  = str(request.POST['filter'])
+    page    = int(request.POST['page'])
+    search  = str(request.POST['search']).strip()
+    dRange  = str(request.POST['range']).split("-")
     try:
-        sort = str(request.GET['sort'])
+        date1   = datetime.datetime.strptime( dRange[0].strip(),'%b %d, %Y')
     except:
-        sort = "name"
+        date1   = datetime.datetime.strptime( dRange[0].strip(),'%B %d, %Y')
     try:
-        filter = str(request.GET['filter'])
+        date2   = datetime.datetime.strptime( dRange[1].strip()+" 23:59:59",'%b %d, %Y %H:%M:%S')
     except:
-        filter = None
-    try:
-        page = int(request.GET['page'])
-    except:
-        page = 1
-    try:
-        search = str(request.GET['search'])
-    except:
-        search = None
-    try:
-        range = str(request.GET['range'])
-    except:
-        range = "all"
-    
-    # Add new user validation and forms
-    if check is not None:
-        form = AddUserForm(request.GET.copy())
-        if form.is_valid():
-            user = form.save()
+        date2   = datetime.datetime.strptime( dRange[1].strip()+" 23:59:59",'%B %d, %Y %H:%M:%S')    
 
-            url     = '/students/' + str(sort) + "/" + str(page) + "/" + str(range) + "/"
-            json = util.JsonLoad(               url             )
-        else:
-            json = util.JsonFormError(form)
-        return HttpResponse(json,
-                            mimetype='application/json')
+    # Add new user validation and forms
+##    if check is not None:
+##        form = AddUserForm(request.GET.copy())
+##        if form.is_valid():
+##            user2 = form.save()
+##            url     = '/students/' # + str(sort) + "/" + str(page) + "/" + str(range) + "/"
+##            json = util.JsonLoad(               url             )
+##        else:
+##            json = util.JsonFormError(form)
+##        return HttpResponse(json,
+##                            mimetype='application/json')
 
     # Make form
-    addUserForm = AddUserForm()
-    
+    #addUserForm = AddUserForm()
+
     # Get user list with filters (bday, waiver, balance)
     if filter == "bday":
         userList = birthdaysWithin(7)
@@ -456,12 +617,22 @@ def students( request, check=None):
         userList = User.objects.filter(waiverSigned=False)
     else:
         userList = User.objects.all()
-    
+
     # Filter user list by search
-    if search is not None:
+    if search:
         userList = userList.filter(name__icontains=str(search))
-    print userList
-    
+    #print userList
+
+    # Date range
+    attendanceLst   = Attendance.objects.filter(userId__in = userList,
+                                                dateTime__range=(date1, date2))
+    usrAttenLst     = []
+    for i in attendanceLst:
+        usrId       = i.userId.userId
+        if usrId in usrAttenLst: continue
+        usrAttenLst.append( usrId )
+    userList = userList.filter(userId__in=usrAttenLst)
+
     # Make userList a list so we can sort
     userList = list(userList)
 
@@ -470,37 +641,205 @@ def students( request, check=None):
         userList.sort(key=operator.attrgetter("name"))
     elif str(sort) == "activity":
         userList.sort(key=operator.attrgetter("lastAccess"))
+        userList.reverse()
     else:
         userList.sort(key=operator.attrgetter("balance"))
-        
-        
 
+    # @WIP1@ These lines must be fixed
     now	= datetime.datetime.now()
-    for user in userList:
-	bday			= user.birthday
-	user.hasBirthday	= (bday.year != 1970 and bday.month != 1 and bday.day != 1)
-	user.showBirthday	= (user.userId == 1)	# check Bday within 2 days
-	user.recent		= ((now - user.lastAccess).total_seconds() < 2*24*3600)
+    for user2 in userList:
+	bday			= user2.birthday
+	user2.hasBirthday	= (bday.year != 1970 and bday.month != 1 and bday.day != 1)
+        lst7Day                 = now - datetime.timedelta(     days = 7    )
+        user2.showBirthday	= (bday > lst7Day)	# check Bday within 7 days
+        
+	user2.recent		= ((now - user2.lastAccess).total_seconds() < 2*24*3600)
 
+    # @WIP1@ These lines must be fixed
+    nStudents	= len( userList )
     currPage	= 4
     nPages	= 4
-    nStudents	= len( userList )
-    url		= request.get_full_path()[:-1]
+ #   url		= request.get_full_path()[:-1]
     #url     = str(sortBy) + "/" + str(page) + "/" + str(range)
 
-    return render_to_response( 'students.html',
+
+    #---------------------------------------------------------------------
+    # Set the paginator object and get the current page data list
+    #---------------------------------------------------------------------
+    currPage        = page
+    pgintObj        = getPgintObj(request,          userList,
+                                  currPage                              )
+
+    dataLst         = pgintObj.getDataList(                             )
+
+    return render_to_response( 'studentsInfo.html',
                                {'userName':	user.name,
                                 'userType':	user.userType,
-                                'userList':	userList,
+                                'userList':	dataLst,
 				'nStudents':	nStudents,
 				'currPage':	currPage,
+                                'paginator':    pgintObj,
 				'nPages':	nPages,
-				'url':		url,
-                                'addUserForm':  addUserForm,
+				#'url':		url,
+                                #'addUserForm':  addUserForm,
                                 'sort':         sort,
                                 'filter':       filter,
                                 },
                                context_instance=RequestContext(request) )
+
+
+###############################################################################
+##
+## "addStudent":  Add a new student; using drop down
+##
+###############################################################################
+
+def addStudent( request, check = None ):
+    
+    user, errUrl = GetValidUser(request)
+    if errUrl:
+        return HttpResponseRedirect(errUrl)
+
+    # Add new user validation and forms
+    if check is not None:
+        form = AddUserForm(request.GET.copy())
+        if form.is_valid():
+            user2 = form.save()
+            url     = '/students/' # + str(sort) + "/" + str(page) + "/" + str(range) + "/"
+            json = util.JsonLoad(               url             )
+        else:
+            json = util.JsonFormError(form)
+        return HttpResponse(json,
+                            mimetype='application/json')
+
+    # Make form
+    addUserForm = AddUserForm()
+   
+    return render_to_response(  'dropDownForm.html',
+                                {'form':        addUserForm,
+                                #'formName':     'addClient',
+                                #'actionUrl':    addDrpdnUrl,
+                                },
+                                context_instance=RequestContext(request))
+
+###############################################################################
+##
+## "exportStudents": Create a CSV file which contains the users data
+##
+###############################################################################
+
+def exportStudents( request ):
+    today       = datetime.datetime.now(                                )
+    response    = HttpResponse(                 mimetype = 'text/csv'   )
+    fileName    = "students_%s.csv" %today.strftime(      '%y%m%d%H%M%S'  )
+    response['Content-Disposition'] = 'attachment; filename=%s' %fileName
+    
+    writer      = csv.writer(                   response                )
+    writer.writerow(['Name', 'E-mail', 'Address',
+                     'Phone', 'Birthday', 'Balance',
+                     'Waiver', 'Admin',
+                     ])
+
+    for i in User.objects.all():
+        address = i.address.replace(         "\r\n",     " "     )
+
+        writer.writerow([i.name, i.email, address, i.phone,
+                         str(i.birthday.date()), i.balance,
+                         i.waiverSigned, i.userType
+                        ])
+                         
+    return response
+
+###############################################################################
+##
+## "importStudents": Import a CSV file which contains the users data
+##
+###############################################################################
+
+def importStudents( request ):
+    if request.POST:
+        fileName    = request.FILES.copy()['fileName']
+        fileData    = fileName.read().split(        '\n'                )
+
+        #----------------------------------------------------------------
+        # Check the file data to be correct and save it
+        #----------------------------------------------------------------
+
+        fileHeader  = fileData[0].replace(          "\r",       ""      )
+        header      = "Name,E-mail,Address,Phone,Birthday,Balance,Waiver,Admin"
+        
+        if fileHeader != header: return
+        
+        #----------------------------------------------------------------
+        # Save imported file data into data base
+        #----------------------------------------------------------------
+                    
+        for row in fileData[1:]:
+            rowData = row.replace("\r", ""  )
+            studentData = rowData.split(    ',' )
+            if len( studentData ) != 8 : continue
+
+            email = studentData[1]
+                        
+            try:
+                user    = User.objects.get( email__exact = email )
+            except User.DoesNotExist:
+                user    = None
+
+            if user:
+                updateStudent( studentData, update = True)
+            else:
+                updateStudent(     studentData   )
+                            
+        
+        return HttpResponseRedirect(    "/students/"        )
+
+###############################################################################
+##
+## "updateStudent": Update student table
+##
+###############################################################################
+
+def updateStudent( data, update = False ):
+    
+    if update:
+        #----------------------------------------------------------------
+        # Update student data
+        #----------------------------------------------------------------
+
+        user                    = User.objects.get( email__exact = data[1] )
+        user.name               = data[0]
+        user.address            = data[2]
+        user.phone              = data[3]
+        user.birthday           = datetime.datetime.strptime(data[4],'%Y-%m-%d')
+        user.balance            = int(data[5])
+        user.waiverSigned       = True if data[6] == "True" else False
+        user.userType           = int(data[7])
+        user.save()
+        return 
+
+    #--------------------------------------------------------------------
+    # Save New student
+    #--------------------------------------------------------------------
+
+    today                   = datetime.datetime.today()
+    user                    = User()
+    user.name               = data[0]
+    user.email              = data[1].lower()
+    user.password           = util.encryptPass(str(random.random()))
+    user.address            = data[2].lower()
+    user.phone              = data[3]
+    user.lastAccess         = today
+    user.balance            = int(data[5])
+    user.waiverSigned       = True if data[6] == "True" else False
+    user.facebook           = False
+    user.notes              = ""
+    user.dateCreated        = today
+    user.userType           = int(data[7])
+    user.idleTime           = 10
+    user.birthday           = datetime.datetime.strptime(data[4],'%Y-%m-%d')
+    user.birthdayAssigned   = False
+    user.save()
 
 #==============================================================================
 #
@@ -792,20 +1131,20 @@ def clearance(request):
 #
 #==============================================================================
 
-def edit(request, check=None):
+def editStudent(request, userId, check=None):
 
     user, errUrl = GetValidUser(request)
     if errUrl:
         return HttpResponseRedirect(errUrl)
 
-    try:
-        userId = request.GET['id']
-    except:
-        return HttpResponseRedirect('/students/name0/1/all/')
-    try:
-        url = request.GET['url']
-    except:
-        url = 'name0/1/all/'
+##    try:
+##        userId = request.GET['id']
+##    except:
+##        return HttpResponseRedirect('/students/name0/1/all/')
+##    try:
+##        url = request.GET['url']
+##    except:
+##        url = 'name0/1/all/'
 
     if check is not None:
         data    = request.GET.copy()
@@ -813,67 +1152,106 @@ def edit(request, check=None):
 
         if form.is_valid():
             form.save()
-            url = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
-            json = util.JsonLoad(url)
+            json = util.JsonLoad( closeSecId = "editSudent" )
         else:
             json = util.JsonFormError(form)
         return HttpResponse(json,
                             mimetype='application/json')
-    
-    user = User.objects.get(userId = userId)
 
-    editUserForm = EditUserForm(initial = {'userId':    user.userId,
-                                           'name':      user.name,
-                                           'email':     user.email,
-                                           'address':   user.address,
-                                           'phone':     user.phone,
-                                           'birthday':  user.birthday.date(),
-                                           'balance':   user.balance,
-                                           'notes':     user.notes
+    user2 = User.objects.get(userId = userId )
+
+    if str( user2.birthday.date() ) == "1970-01-01":
+        birthVal = ""
+    else:
+        birthVal = user2.birthday.date()
+        
+    editUserForm = EditUserForm(initial = {'userId':    user2.userId,
+                                           'name':      user2.name,
+                                           'email':     user2.email,
+                                           'address':   user2.address,
+                                           'phone':     user2.phone,
+                                           'birth':     birthVal,
+                                           'balance':   user2.balance,
+                                           'notes':     user2.notes,
+                                           'waiver':    user2.waiverSigned
                                            }
                                 )
 
-    return render_to_response('edit.html',
-                              {'userId': userId,
-                               'url': url,
-                               'editUserForm': editUserForm,
-                               },
-                              context_instance=RequestContext(request))
+##    return render_to_response('editStudent.html',
+##                              {'userId': user2.userId,
+##                               'userName': user.name,
+##                               'userType': user.userType,
+##                               'url': url,
+##                               'editUserForm': editUserForm,
+##                               },
+##                              context_instance=RequestContext(request))
+##
 
-def xedit(request, check=None):
-    try:
-        userId = request.GET['id']
-    except:
-        return HttpResponseRedirect('/students/name0/1/all/')
+    return render_to_response(  'editStudentForm.html',
+                                {'form':        editUserForm,
+                                 'userType':    user2.userType,
+                                 'title':       'Edit Student',
+                                 'actionUrl':   "/students/edit/%d/" %int( userId ),
+                                 'submitVal':   'Save'
+                                },
+                                context_instance=RequestContext(request))
 
-    try:
-        url = request.GET['url']
-    except:
-        url = 'name0/1/all/'
+#==============================================================================
+#
+# "purchaseStudent": A purchase student page
+#
+#==============================================================================
+
+def purchaseStudent(request, userId, check=None):
+
+    user, errUrl = GetValidUser(request)
+    if errUrl:
+        return HttpResponseRedirect(errUrl)
 
     if check is not None:
-        form = EditUserForm(request.GET.copy())
-        if form.is_valid():
-            user = form.save(userId)
+        data    = request.GET.copy()
+        form    = PurchaseUserForm(data)
 
-            url     = '/students/' + str(sortBy) + "/" + str(page) + "/" + str(range) + "/"
-            json = util.JsonLoad(               url             )
+        if form.is_valid():
+            form.save()
+            json = util.JsonLoad( closeSecId = "purchaseStudent" )
         else:
             json = util.JsonFormError(form)
         return HttpResponse(json,
-                            mimetype='application/json')                
+                            mimetype='application/json')
 
-    user = User.objects.get(userId=userId)
-    editUserForm = EditUserForm(user)
+    user2 = User.objects.get(userId = userId )
 
-    userId = user.userId
+        
+    purchaseUserForm = PurchaseUserForm( initial = {'userId':    user2.userId })
+    return render_to_response(  'purchaseStudenttForm.html',
+                                {'form':        purchaseUserForm,
+                                 'title':       'Add classes to "%s"' %user2.name,
+                                 'actionUrl':   "/students/purchase/%d/" %int( userId ),
+                                 'submitVal':   'Save'
+                                },
+                                context_instance=RequestContext(request))
 
-    return render_to_response('edit.html',
-                              {'editUserForm': editUserForm,
-                               'userId': userId,
-                               'url': url,
-                               },
-                              context_instance=RequestContext(request))
+#==============================================================================
+#
+# "rcntActivityStudent": Student recent activity page
+#
+#==============================================================================
+
+def rcntActivityStudent(request, userId ):
+
+    user, errUrl = GetValidUser(request)
+    if errUrl:
+        return HttpResponseRedirect(errUrl)
+
+    user2 = User.objects.get(userId = userId )
+
+    recentLst = usrRcntChanges(  user2 )
+    return render_to_response(  'recentActivity.html',
+                                {'recentLst':        recentLst,
+                                 'title':       '"%s" recent activity' %user2.name,
+                                },
+                                context_instance=RequestContext(request))
 
 #==============================================================================
 #
@@ -1056,3 +1434,40 @@ def myprofile(request, check=None):
                                  'userType':user.userType,
                                 },
                                 context_instance=RequestContext(request))
+
+###############################################################################
+##
+## "getPgintObj": Create paginator object and return it.
+##
+###############################################################################
+
+def getPgintObj( request, usrLst, currPage = 1, padding = 3 ):
+    
+ #   currUsr     = getCurrUser(                  request                 )
+    pgintObj    = paginator.PaginatorObj(       usrLst,
+                                                1 * 4,
+                                                currPage,
+                                                padding                 )
+    return pgintObj
+
+###############################################################################
+##
+## "usrRcntChanges":
+##
+###############################################################################
+
+def usrRcntChanges( user ):
+
+    now	= datetime.datetime.now()
+    rcnChgs     = RecentChange.objects.filter(userId = user.userId)
+
+    retVal      = []
+    for chg in rcnChgs:
+        if ((now - chg.dateTime).total_seconds() < 2*24*3600):
+            retVal.append( [chg.change, chg.value, chg.dateTime.strftime('%Y-%m-%d') ] )
+
+        else:
+            chg.delete()
+
+    return retVal
+

@@ -10,7 +10,7 @@
    <h3>My profile</h3>
    <form id="form" method="post" action="/myprofile/" novalidate>{% csrf_token %}
     {% for field in form %}
-     <div class="row" style="margin:5px;">
+     <div class="row form-group" style="margin:5px;">
       {% if not field.is_hidden %}
        <span class="col-sm-3 text-right">{{ field.label }}:</span>
       {% endif %} 

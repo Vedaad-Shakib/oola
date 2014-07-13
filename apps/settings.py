@@ -4,7 +4,7 @@ SITE_NAME   = 'ula-zumba-class.com'
 ROOT_NAME   = 'ula-zumba-class.com'
 ROOT_WWW    = '/var/www/' + ROOT_NAME
 ROOT_HTTP   = '/Users/farzin/oola/'
-ROOT_HTTP   = '/Users/farzin/oola'
+ROOT_HTTP   = '/Users/farzin/oola/'
 PROJECT_URL = 'http://50.23.9.2:8000/'
 
 # Settings for sending emails

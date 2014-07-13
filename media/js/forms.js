@@ -312,6 +312,26 @@ jQuery( function() {
 		});
 	});
 
+  //=====================================================================
+  //  Validate Modal Dialog forms 
+  //=====================================================================
+
+  jQuery("form[id= editStudentFrm]").each(function() {
+   jQuery(this).validate({
+    submitHandler: function(form) {
+	var jForm = jQuery(form);
+	jQuery.getJSON( jForm.attr("action") + "check/?" + jForm.serialize(), function(json) {
+		if (json.load === true) {
+			jQuery( json.closeSecId ).modal('hide');
+			submitCntrlForm();
+		}
+		else{
+			jForm.validate().showErrors(json.errors);
+		}
+	});
+    }	
+   });
+  });
 
 
   

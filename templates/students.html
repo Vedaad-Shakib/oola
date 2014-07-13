@@ -2,44 +2,52 @@
 {% block title %}Students{% endblock %}
 
 {% block head_extras %}
-  <link href="../media/css/daterangepicker.css" rel="stylesheet">  
-  <script src="../media/js/moment.min.js"></script>
-  <script src="../media/js/daterangepicker.js"></script>
-  <script src="../media/js/bsselect.js"></script>
+  <link href="/media/css/daterangepicker.css" rel="stylesheet">  
+  <script src="/media/js/moment.min.js"></script>
+  <script src="/media/js/daterangepicker.js"></script>
+  <script src="/media/js/bsselect.js"></script>
   <script type="text/javascript">
     // Using jQuery.
-
+    /*
     $(function() {
-      $('form').each(function() {
+      $('cntrlFrom').each(function() {
         $(this).find('input').keypress(function(e) {
           // Enter pressed?
            if(e.which == 10 || e.which == 13) {
-             this.form.submit();
+             submitCntrlForm();
+	      return false;
            }
          });
        });
-     });
+     });*/
 </script>
 {% endblock %}
 
 <!--=== Content Part ===-->
 {% block content %}
 <div class="container">
+
+ <div id="editSudent" class="modal in" tabindex="-1" role="dialog" aria-hidden="true"></div>
+ <div id="purchaseStudent" class="modal in" tabindex="-1" role="dialog" aria-hidden="true"></div>
+ <div id="rcntStudentAct" class="modal in" tabindex="-1" role="dialog" aria-hidden="true"></div>
+
 <!--=== Add Student ===-->
 
  <!--=== Header (filter/sort) --->
  <div class="row student-row-block">
-  <form id="form" method="get" action="." novalidate>{% csrf_token %}
+  <form id="cntrlFrom" method="post" action="/students/dataLst/" novalidate>{% csrf_token %}
+   <input type="hidden" name="page" id="page" value="{{ currPage }}">
    <div class="col-sm-3">
     <div class="input-group" title="Set range">
      <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
      <span class="form-control" id="daterange"><span>Today</span><b class="caret"></b></span>
+     <input type="hidden" name="range" id="dRange" />
     </div>
    </div>
    <div class="col-sm-3">
     <div class="input-group" title="Filter students">
      <span class="input-group-addon"><i class="glyphicon glyphicon-filter"></i></span>
-     <select id="filterVal" class="form-control" onchange="this.form.submit()" name="filter">
+     <select id="filterVal" class="form-control" onchange="submitCntrlForm()" name="filter">
        {% if filter == "bday" %}
          <option value="none">None</option>
          <option selected="selected" value="bday">Upcoming B-days</option>
@@ -67,7 +75,7 @@
    <div class="col-sm-3">
     <div class="input-group" title="Sort students">
      <span class="input-group-addon"><i class="glyphicon glyphicon-sort"></i></span>
-     <select id="sort" class="form-control" onchange="this.form.submit()" name="sort">
+     <select id="sort" class="form-control" onchange="submitCntrlForm()" name="sort">
       {% if sort == "activity"  %}
         <option value="name">By name</option>
         <option value="balance">By balance</option>
@@ -88,128 +96,14 @@
      <div class="input-group" title="Search a student">
        <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
        <input type="text" class="form-control" placeholder="Search a student" 
-	      name="search" id="search">
+	      name="search" id="search"
+		onkeydown="if (event.keyCode == 13) { submitCntrlForm(); return false; }">
      </div>
    </div>
   </form>
  </div>
-
- <!--=== Header (#/add)--->
- <div class="row student-row-block margin-top-20">
-  <div class="col-sm-4 col-xs-0"></div>
-  <div class="col-sm-4 col-xs-6 center" style="font-size:18px;">
-   <span class="class-em">{{ nStudents }}</span> Students 
-  </div>
-  <div class="col-sm-4 col-xs-6">
-   <ul class="list-inline pull-right">
-    <li class="dropdown" title="Add a new student">
-     <a id="addStudent-dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="glyphicon glyphicon-user oola"></i></a>
-       <div id="addStudent" class="dropdown-menu oola-flush-right">
-	 <form id="formup" method="post" style="margin-top: 10px;" action="/students/" novalidate> <!-- hitching on with the signup form validation -->
-           {% csrf_token %}
-             {% for field in addUserForm %}
-	        <div class="form-group">
-                  <div class="input-group">
-
-		    {% if field.label == "Admin" or field.label == "Waiver" %} 
-		      {{ field.label }}
-		    {% endif %}
-
-		    {{ field }}
-		  </div>
-		</div>
-	     {% endfor %}
-             <p class="text-center">
-               <button class="btn-u btn-primary" type="submit" id="register_submit">Register</button>
-             </p>
-         </form>
-       </div>
-    </li>
-    <li class="dropdown" title="Upload students (in CSV)">
-     <a id="uploadStudent" class="dropdown-toggle" data-toggle="dropdown">
-      <i class="glyphicon glyphicon-upload oola"></i>
-     </a>
-    </li>
-    <li class="dropdown" title="Download students (in CSV)">
-     <a id="downloadStudent" class="dropdown-toggle" data-toggle="dropdown">
-      <i class="glyphicon glyphicon-download oola"></i>
-     </a>
-    </li>
-    &nbsp;
-   </ul>
-  </div>
- </div>
-
- <!--=== Students--->
- <div class="row student-row-block margin-top-20">
-  {% for user in userList %}
-   <div class="col-md-3 col-sm-4"> 
-    <div class="student-item-block">
-     <div class="row">
-      <div class="col-xs-9" title="{{ user.name }}"> {{ user.name }}</div>
-      <div class="col-xs-3 class-em" title="Balance">{{ user.balance }}</div>
-     </div><!-- row -->
-     <div class="row margin-top-10">
-      <!-- Recent activity -->
-      <div class="col-xs-1"> 
-       <i {% if user.recent %}
-	 class="glyphicon glyphicon-star icon-orange" title="Recent activity!"
-	{% else %}
-	 class="glyphicon glyphicon-star icon-grey" title="No recent activity!"
-        {% endif %} ></i>
-      </div>
-      <!-- Edit -->
-      <div class="col-xs-1"> 
-       <a class="student-icon" href="/students/edit/?id={{ user.userId }}&url={{ url }}/" 
-        title="Edit {{ user.name }}">
-        <i class="glyphicon glyphicon-pencil"></i>
-       </a>
-      </div>
-      <!-- Email -->
-      <div class="col-xs-1"> 
-       <a class="student-icon" href="mailto:{{ user.email }}" 
-        title="Email {{ user.name }}">
-        <i class="glyphicon glyphicon-envelope"></i>
-       </a>
-      </div>
-      <!-- Birthday -->
-      <div class="col-xs-1"> 
-       <img src="/media/img/1385884051_cake.png" width="16" height="16"
-        {% if not user.showBirthday %} class="icon-greyed" {% endif %}
-	{% if user.hasBirthday %} title="Birthday: {{ user.birthday|date }}" {% else %}
-	title="Birthday: unknown" {% endif %}>
-      </div>
-      <!-- Waiver -->
-      <div class="col-xs-1"> 
-       <i {% if user.waiverSigned %}
-	 class="glyphicon glyphicon-warning-sign icon-grey" title="No warnings!"
-	{% else %}
-	 class="glyphicon glyphicon-warning-sign icon-red" title="Waiver not signed!"
-        {% endif %} ></i>
-      </div>
-      <!-- Stats -->
-      <div class="col-xs-1"> 
-       <a class="student-icon" href="/stats/{{ user.userId }}/">
-        <i class="glyphicon glyphicon-stats" title="View user activity stats ..."></i>
-       </a>
-      </div>
-      <div class="clearfix visible-xs"></div>
-     </div><!-- row -->
-    </div>
-   </div>
-  {% endfor %}
- </div>
-
- <!--=== Pagination--->
- {% if nPages > 1 %}
-  <div class="row student-row-block margin-top-20">
-   <div class="col-md-12 col-xs-12 col-sm-12 col-lg-12">
-    <div class="center">
-    {% include "pagination.html" %}
-   </div>
-   </div>
-  </div>
- {% endif %}
+ 
+ <div id="studentsInfo"></div>
 
 </div><!--/container-->		
 {% endblock %}	
@@ -230,14 +124,39 @@
     },
     opens: "right",
     format: "YYYY-MM-DD",
-    startDate: new Date(),
+    startDate: "2014-01-01",
     endDate: new Date(),
     }, 
     function(start, end) {
      $("#daterange span").html(start.format("MMM D, YYYY") + " - " + end.format("MMM D, YYYY"));
+     $("#dRange").val( $("#daterange span").text() );
+     submitCntrlForm();
     }
    );
+
+  $("#daterange span").html("Jan 1, 2014" + ' - ' + moment().format('MMMM D, YYYY'));
+  $("#dRange").val( $("#daterange span").text() );
+  submitCntrlForm();
+  
   });
+
+function submitCntrlForm( page )
+{
+	var form = jQuery("#cntrlFrom");
+	if (page != undefined){
+		jQuery( "input#page").val( page );
+	}
+	/*
+	else{
+		jQuery( "input#page").val( {{ currPage }} );
+		alert( {{ currPage }} );
+	}
+	*/
+	jQuery.post( jQuery(form).attr("action"), jQuery(form).serialize(), function(data){
+		jQuery( "#studentsInfo" ).html( data );
+	});
+}
+  
  </script>
 
 <link href="/media/css/datepicker.css" rel="stylesheet"/>

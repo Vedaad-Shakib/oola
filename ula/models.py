@@ -126,3 +126,20 @@ class ForgotPassword(models.Model):
     active	    = models.CharField(	db_column	= 'active',
     					max_length	= 1		)
 
+##############################################################################
+##
+## "RecentChange": Class recent change
+##
+##############################################################################
+
+class RecentChange(models.Model):
+     recentChangeId  = models.AutoField(     db_column   = 'recentChange_id',
+                                             primary_key = True         )
+     userId          = models.ForeignKey(    User,
+                                             db_column   = 'user_id'    )
+     dateTime        = models.DateTimeField( db_column   = 'date_and_time')
+     change          = models.CharField(     db_column	 = 'change',
+                                             max_length	 = 32		)
+     value           = models.CharField(     db_column	 = 'value',
+                                             max_length	 = 32		)
+

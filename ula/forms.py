@@ -29,18 +29,18 @@ class SignupForm(forms.Form):
     name    	= FieldText(            label           = '* Full name',
                                         max_length      = 128,
                                         placeholder     = 'Enter full name'         )
-    
+
     email       = FieldEmail(           label           = '* E-mail',
                                         max_length      = 128,
 					placeholder     = 'Enter e-mail address'    )
-    
+
     password    = FieldPassword(        label           = '* Password',
                                         max_length      = 128,
 					placeholder     = 'Enter password'          )
-    
+
     password2   = FieldPassword2(       label           = '* Confirm password',
                                         max_length      = 128,
-					placeholder     = 'Enter password again'    )   
+					placeholder     = 'Enter password again'    )
 
 #------------------------------------------------------------------------------
 # Check for email address
@@ -177,13 +177,13 @@ class ClassSignup(forms.Form):
                                         max_length      = 128,
                                         placeholder     = 'Enter full name',
                                         attrs           = {"onkeypress": "resetActivityTimer()"})
-    
+
     email       = FieldEmail(           label           = '* E-mail',
 					extraClass	= "class-signin-input",
                                         max_length      = 128,
 					placeholder     = 'Enter e-mail address',
                                         attrs           = {"onkeypress": "resetActivityTimer()"})
-    
+
     balance	= FieldInteger(		label		= '* Number of Classes Left',
 					extraClass	= "class-signin-input",
 					placeholder     = 'Enter balance, excluding today',
@@ -263,6 +263,21 @@ class ForgotPasswordForm(forms.Form):
 	forgotPassword.forgotTime   = datetime.datetime.today(          )
 	forgotPassword.active	    = 'Y'
 	forgotPassword.save(                                            )
+
+	#----------------------------------------------------------------------
+	# Set the recent change
+	#----------------------------------------------------------------------
+
+        user.lastAccess             = datetime.datetime.now(            )
+        user.save()
+        
+        rcntChg                     = RecentChange(                     )
+        rcntChg.userId              = user
+        rcntChg.change              = "Forgot Password"
+        rcntChg.value               = "Forgot code sent"
+        rcntChg.dateTime            = datetime.datetime.now(            )
+        rcntChg.save(                                                   )
+	
 	return forgotPassword
 
 ###############################################################################
@@ -275,10 +290,10 @@ class ChangePasswordForm(forms.Form):
     password    = FieldPassword(        label           = '* New Password',
                                         max_length      = 128,
 					placeholder     = 'Enter new password'          )
-    
+
     password2   = FieldPassword2(       label           = '* Confirm password',
                                         max_length      = 128,
-					placeholder     = 'Enter new password again'    )   
+					placeholder     = 'Enter new password again'    )
 
 #------------------------------------------------------------------------------
 # Save the information in the data base
@@ -294,8 +309,21 @@ class ChangePasswordForm(forms.Form):
 	user.password		= util.encryptPass(self.data['password'])
 	user.updatedOn		= today
 	user.updatedBy		= userId
+	user.lastAccess         = datetime.datetime.now(            )
 
 	user.save(                                                              )
+
+	#----------------------------------------------------------------------
+	# Set the recent change
+	#----------------------------------------------------------------------
+
+        rcntChg                     = RecentChange(                     )
+        rcntChg.userId              = user
+        rcntChg.change              = "Password"
+        rcntChg.value               = "Password changed"
+        rcntChg.dateTime            = datetime.datetime.now(            )
+        rcntChg.save(                                                   )
+
 	return user
 
 ###############################################################################
@@ -354,6 +382,11 @@ class MyprofileForm(forms.Form):
 	today			= datetime.datetime.today()
 	userId			= int( self.data['userId'] )
 	user			= User.objects.get( userId = userId )
+
+	lstVals                 = [user.name, user.email, user.birthday.date(),
+                                   user.address, user.phone, user.idleTime,
+                                   user.userType]
+                                   
 	user.name	        = self.data['name'].strip().title()
         user.email		= self.data['email'].strip().lower()
         birth                   = self.data['birth'].strip()
@@ -374,9 +407,49 @@ class MyprofileForm(forms.Form):
 
 	user.updatedOn		= today
 	user.updatedBy		= userId
+	user.lastAccess         = datetime.datetime.now(            )
 
 	user.save()
+
+	#----------------------------------------------------------------------
+	# Set the recent change
+	#----------------------------------------------------------------------
+
+	newVals                 = [user.name, user.email, user.birthday.date(),
+                                   user.address, user.phone, user.idleTime,
+                                   user.userType]
+
+        for i in xrange( len(newVals) ):
+            if newVals[i] != lstVals[i]:
+                rcntChg         = RecentChange(                     )
+                rcntChg.userId  = user
+                
+                if i == 0:
+                    rcntChg.change= "Name"
+                if i == 1:
+                    rcntChg.change= "E-mail"
+                if i == 2:
+                    rcntChg.change= "Birthday"
+                if i == 3:
+                    rcntChg.change= "Address"
+                if i == 4:
+                    rcntChg.change= "Phone"
+                if i == 5:
+                    rcntChg.change= "Idle Time"
+                if i == 6:
+                    rcntChg.change= "Type"
+                
+                rcntChg.value   = str( newVals[i] )
+                rcntChg.dateTime= datetime.datetime.now(            )
+                rcntChg.save(                                       )
+
 	return user
+
+###############################################################################
+##
+## AddUserForm: Add a new user
+##
+###############################################################################
 
 class AddUserForm(forms.Form):
     name        = FieldText(            label           = '* Full name',
@@ -397,16 +470,16 @@ class AddUserForm(forms.Form):
 
     birth       = FieldDate(            label           = 'Birthday',
                                         placeholder     = 'Enter birthday: yyyy-mm-dd',
-                                        attrs           = {"id":"datePik"}          )
+                                        attrs           = {"id":"datePikAdd"}          )
     balance     = FieldInteger(         label           = '* Number of classes left',
                                         placeholder     = 'Enter balance'           )
     waiver      = FieldCheckBox(        label           = 'Waiver'                  )
     admin       = FieldCheckBox(        label           = 'Admin'                   )
-                                        
 
-#------------------------------------------------------------------------------                                                                                                                            
-# Check for email address                                                                                                                                                                                  
-#------------------------------------------------------------------------------                                                                                                                            
+
+#------------------------------------------------------------------------------
+# Check for email address
+#------------------------------------------------------------------------------
 
     def clean_email( self ):
         email           = self.data['email'].lower()
@@ -416,9 +489,9 @@ class AddUserForm(forms.Form):
         except User.DoesNotExist:
             pass
 
-#------------------------------------------------------------------------------                                                                                                                            
-# Save the information in the data base                                                                                                                                                                    
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
+# Save the information in the data base
+#------------------------------------------------------------------------------
 
     def save( self ):
         today                   = datetime.datetime.today()
@@ -441,8 +514,25 @@ class AddUserForm(forms.Form):
             birth               = birth.replace(".","-")
             birth               = birth.replace("/","-")
             user.birthday       = datetime.datetime.strptime(birth,'%Y-%m-%d')
+        else:
+            user.birthday       = datetime.date(1970, 1, 1)
+
         user.birthdayAssigned   = False
         user.save()
+
+        #------------------------------------------------------------------------
+        # If the balance is  non-zero, then record it in "Purchase" table
+        #------------------------------------------------------------------------
+
+        if user.balance > 0:
+            purchase = Purchase()
+            purchase.userId = user
+            purchase.amount = user.balance  #???
+            purchase.discount = 0 #???
+            purchase.numberOfClasses = user.balance
+            purchase.date = datetime.datetime.now()
+            purchase.save()
+
         return user
 
 ###############################################################################
@@ -458,53 +548,64 @@ class EditUserForm(forms.Form):
     name        = FieldText(            label           = '* Full name',
                                         max_length      = 128,
                                         placeholder     = 'Enter full name')
-    
+
     email       = FieldEmail(           label           = '* E-mail',
                                         max_length      = 128,
                                         placeholder     = 'Enter e-mail address')
-    
+
     address     = FieldTextarea(        label           = 'Address',
                                         placeholder     = 'Enter address',
                                         attrs           = {"rows": 2})
-    
+
     phone       = FieldPhone(           label           = 'Phone',
                                         max_length      = 128,
                                         placeholder     = 'Enter phone number')
-    
-    birth    = FieldDate(               label           = 'Birthday',
+
+    birth    	= FieldDate(            label           = 'Birthday',
                                         placeholder     = 'Enter birthday: yyyy-mm-dd',
                                         attrs           = {"id":"datePik"})
 
-    balance     = FieldInteger(         label           = '* Number of classes left',
+    balance     = FieldNumber(          label           = '* Number of classes left',
                                         placeholder     = 'Enter balance')
 
     notes       = FieldTextarea(        label           = 'Notes',
                                         max_length      = 1024,
                                         placeholder     = 'Enter notes',
                                         attrs           = { "rows": "2"})
-#------------------------------------------------------------------------------                                                                                                               
-# Check for email address                                                                                                                                                                                
-#------------------------------------------------------------------------------                                                                                                                      
+
+    waiver      = FieldCheckBox(        label           = 'Waiver'      )
+    
+#------------------------------------------------------------------------------
+# Check for email address
+#------------------------------------------------------------------------------
 
     def clean_email( self ):
         email           = self.data['email'].lower()
+        userId          = int( self.data['userId'] )
         try:
             user        = User.objects.get( email__exact = email )
-            raise forms.ValidationError( 'Email address already exists' )
+            if int( user.userId ) == userId:pass
+            else:
+                raise forms.ValidationError( 'Email address already exists' )
         except User.DoesNotExist:
             pass
 
-#------------------------------------------------------------------------------                                                                                                                          
-# Save the information in the data base                                                                                                                                                                  
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
+# Save the information in the data base
+#------------------------------------------------------------------------------
 
     def save( self ):
         userId = int(self.data['userId'])
         user = User.objects.get(userId = userId)
+
+	lstVals                 = [user.name, user.email, user.birthday.date(),
+                                   user.address, user.phone, user.balance, user.notes,
+                                   user.userType]
+
         user.name               = self.data['name'].title()
         user.email              = self.data['email'].lower()
         user.address            = self.data['address'].lower()
-        user.phone              = int(self.data['phone'])
+        user.phone              = self.data['phone']
 
         birth                   = self.data['birth'].strip()
         if birth:
@@ -515,17 +616,150 @@ class EditUserForm(forms.Form):
         user.balance            = int(self.data['balance'])
         user.waiverSigned       = True if self.data.has_key("waiver")  else False
         user.notes              = self.data['notes']
-        user.userType           = 1 if self.data.has_key("admin") else 0
+ #       user.userType           = 1 if self.data.has_key("admin") else 0
         if self.data.has_key( "adminType" ):
             if self.data['adminType'] == "Y":
                 user.userType   = 1
             else:
                 user.userType   = 0
 
-        if self.data.has_key( "waiver" ):
-            if self.data['waiver'] == "Y":
-                user.waiverSigned   = True
-            else:
-                user.waiverSigned   = False
-        user.save()
+##        if self.data.has_key( "waiver" ):
+##            if self.data['waiver'] == "Y":
+##                user.waiverSigned   = True
+##            else:
+##                user.waiverSigned   = False
+
+	user.lastAccess         = datetime.datetime.now(            )
+	user.save()
+
+	#----------------------------------------------------------------------
+	# Set the recent change
+	#----------------------------------------------------------------------
+
+	newVals                 = [user.name, user.email, user.birthday.date(),
+                                   user.address, user.phone, user.balance, user.notes,
+                                   user.userType]
+
+        for i in xrange( len(newVals) ):
+            if newVals[i] != lstVals[i]:
+                rcntChg         = RecentChange(                     )
+                rcntChg.userId  = user
+                
+                if i == 0:
+                    rcntChg.change= "Name"
+                if i == 1:
+                    rcntChg.change= "E-mail"
+                if i == 2:
+                    rcntChg.change= "Birthday"
+                if i == 3:
+                    rcntChg.change= "Address"
+                if i == 4:
+                    rcntChg.change= "Phone"
+                if i == 5:
+                    rcntChg.change= "Balance"
+                if i == 6:
+                    rcntChg.change= "Notes"
+                if i == 7:
+                    rcntChg.change= "Type"
+                
+                rcntChg.value   = str( newVals[i] )
+                rcntChg.dateTime= datetime.datetime.now(            )
+                rcntChg.save(                                       )
+
+        #------------------------------------------------------------------------
+        # If the balance is increased, then record the change in "Purchase" table
+        #------------------------------------------------------------------------
+
+        if newVals[5] > lstVals[5]:
+            try:
+                purchase = Purchase.objects.get( userId = user )
+            except:
+                purchase = Purchase()
+                purchase.userId = user
+                purchase.amount = int( newVals[5] )  #???
+                purchase.discount = 0 #???
+                
+            purchase.numberOfClasses = int( newVals[5] )
+            purchase.date = datetime.datetime.now()
+            purchase.save()
+
         return user
+
+###############################################################################
+##
+## "ImportUsersForm":  Form for import users data
+##
+###############################################################################
+
+class ImportUsersForm(forms.Form):
+    
+    fileName    = FieldFileInput(   label = 'File name',
+                                    required= True,
+                                    placeholder="File name",
+                                    attrs = { "extension":    "csv" }   )
+
+###############################################################################
+##
+## "PurchaseUserForm":  Form for purchase user
+##
+###############################################################################
+
+class PurchaseUserForm(forms.Form):
+    userId      = FieldInteger(         label           = 'User Id',
+                                        visible         = False             )
+
+    
+    newClasses    = FieldInteger(       label           = '* New Classes',
+                                        placeholder     = 'Enter new classes'     )
+    
+#------------------------------------------------------------------------------
+# Check for email address
+#------------------------------------------------------------------------------
+
+    def clean_newClasses( self ):
+        newClasses      = int( self.data['newClasses'] )
+        if newClasses < 1:
+            raise forms.ValidationError( 'Please enter a positive integer number' )
+            
+#------------------------------------------------------------------------------
+# Save the information in the data base
+#------------------------------------------------------------------------------
+
+    def save( self ):
+        userId = int(self.data['userId'])
+        user = User.objects.get(userId = userId)
+
+        user.balance    += int( self.data['newClasses'] )
+
+	user.lastAccess = datetime.datetime.now(            )
+	user.save()
+
+        #------------------------------------------------------------------------
+        # Record it in "Purchase" table
+        #------------------------------------------------------------------------
+
+        try:
+            purchase = Purchase.objects.get( userId = user )
+        except:
+            purchase = Purchase()
+            purchase.userId = user
+            purchase.amount = user.balance  #???
+            purchase.discount = 0 #???
+                
+        purchase.numberOfClasses = user.balance
+        purchase.date = datetime.datetime.now()
+        purchase.save()
+
+	#----------------------------------------------------------------------
+	# Set the recent change
+	#----------------------------------------------------------------------
+
+        rcntChg         = RecentChange(                     )
+        rcntChg.userId  = user
+        rcntChg.change= "Balance"
+        rcntChg.value   = str( user.balance )
+        rcntChg.dateTime= datetime.datetime.now(            )
+        rcntChg.save(                                       )
+
+        return user
+

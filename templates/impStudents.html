@@ -1,0 +1,16 @@
+<link href="/media/css/oola.css" rel="stylesheet"/>
+<form id="postDrpdnForm" enctype="multipart/form-data" method="post" action="{{ actionUrl }}" novalidate>{% csrf_token %}
+    {% for field in form %}
+     <div class="row form-group" style="margin:5px;">
+      {% if not field.is_hidden %}
+       <span class="col-sm-3 text-right">{{ field.label }}:</span>
+      {% endif %} 
+      <span class="col-sm-9">{{ field }}</span>
+     </div>
+    {% endfor %}
+
+  <p class="text-center">
+	<button class="btn-u btn-primary" type="submit">Upload</button>                     
+  </p>
+</form>
+<script type="text/javascript" src="/media/js/forms.js"></script>

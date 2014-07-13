@@ -68,10 +68,26 @@ def encryptPass( password, algo='', salt='' ):
 ##
 ###############################################################################
 
-def JsonLoad( url ):
+def JsonLoad( url = "", closeSecId = "", loadUrl = "", loadSecId = "" ):
     jdata		= {}
     jdata["load"]       = True
     jdata["url"]        = url
+
+    if loadUrl:
+        jdata["loadUrl"]    = loadUrl
+
+    if closeSecId:
+        if closeSecId[0] == "#":
+            jdata["closeSecId"] = closeSecId
+        else:
+            jdata["closeSecId"] = "#" + closeSecId
+
+    if loadSecId:
+        if loadSecId[0] == "#":
+            jdata["loadSecId"] = loadSecId
+        else:
+            jdata["loadSecId"] = "#" + loadSecId
+        
     jsonData            = json.dumps( jdata )
     return jsonData
 

@@ -1,0 +1,151 @@
+ <!--=== Header (#/add)--->
+ <div class="row student-row-block margin-top-20">
+  <div class="col-sm-4 col-xs-0"></div>
+  <div class="col-sm-4 col-xs-6 center" style="font-size:18px;">
+   <span class="class-em">{{ nStudents }}</span> Students 
+  </div>
+  <div class="col-sm-4 col-xs-6">
+   <ul class="list-inline pull-right">
+
+     <li class="dropdown" title="Add a new student">
+      <a id="addStudent-dropdown" href="#" class="dropdown-toggle" data-toggle="dropdown"
+	   onclick="jQuery( '#addStudent' ).load('/students/add/')" >
+	   <i class="glyphicon glyphicon-user oola"></i></a>
+	 <div id="addStudent" class="dropdown-menu oola-flush-right"></div>	    	
+     </li>
+
+    <li class="dropdown" title="Upload students (in CSV)">
+     <a id="uploadStudent" class="dropdown-toggle" data-toggle="dropdown"
+	   onclick="jQuery( '#impStudent' ).load('/students/import/')" >
+         <i class="glyphicon glyphicon-upload oola"></i></a>
+      <div id="impStudent" class="dropdown-menu oola-flush-right"></div>
+    </li>
+
+    <li class="dropdown" title="Download students (in CSV)">
+     <a id="downloadStudent" href="/students/export/">
+      <i class="glyphicon glyphicon-download oola"></i>
+     </a>
+    </li>
+
+    &nbsp;
+   </ul>
+  </div>
+ </div>
+
+ <!--=== Students--->
+ <div class="row student-row-block margin-top-20">
+  {% for user in userList %}
+   <div class="col-md-3 col-sm-4"> 
+    <div class="student-item-block">
+     <div class="row">
+      <div class="col-xs-9" title="{{ user.name }}"> {{ user.name }}</div>
+      <div class="col-xs-3 class-em" title="Balance">{{ user.balance }}</div>
+     </div><!-- row -->
+     <div class="row margin-top-10">
+      <!-- Recent activity -->
+      <div class="col-xs-1"> 
+       <a class="student-icon" href="/xxx/{{ user.userId }}/">
+        <i class="glyphicon glyphicon-tag" title="Purchase classes for {{ user.name }}"></i>
+       </a>
+      </div>
+      <!-- Edit -->
+      <div class="col-xs-1"> 
+       <a class="student-icon" href="#" onclick="jQuery('#editSudent').load('/students/edit/{{ user.userId }}/').modal()" data-toggle="modal" data-dismiss="modal"
+        title="Edit {{ user.name }}">
+        <i class="glyphicon glyphicon-pencil"></i>
+       </a>
+      </div>
+      <!-- Email -->
+      <div class="col-xs-1"> 
+       <a class="student-icon" href="mailto:{{ user.email }}" 
+        title="Email {{ user.name }}">
+        <i class="glyphicon glyphicon-envelope"></i>
+       </a>
+      </div>
+      <!-- Birthday -->
+      <div class="col-xs-1"> 
+       <img src="/media/img/1385884051_cake.png" width="16" height="16"
+        {% if not user.showBirthday %} class="icon-greyed" {% endif %}
+	{% if user.hasBirthday %} title="Birthday: {{ user.birthday|date }}" {% else %}
+	title="Birthday: unknown" {% endif %}>
+      </div>
+      <!-- Waiver -->
+      <div class="col-xs-1"> 
+       <i {% if user.waiverSigned %}
+	 class="glyphicon glyphicon-warning-sign icon-grey" title="No warnings!"
+	{% else %}
+	 class="glyphicon glyphicon-warning-sign icon-red" title="Waiver not signed!"
+        {% endif %} ></i>
+      </div>
+      <!-- Stats -->
+      <div class="col-xs-1"> 
+       <a class="student-icon" href="/stats/{{ user.userId }}/">
+        <i class="glyphicon glyphicon-stats" title="View user activity stats ..."></i>
+       </a>
+      </div>
+      <div class="clearfix visible-xs"></div>
+      <!-- Recent activity -->
+      <div class="col-xs-1"> 
+       <i {% if user.recent %}
+	 class="glyphicon glyphicon-star icon-orange" title="Recent activity!"
+	{% else %}
+	 class="glyphicon glyphicon-star icon-grey" title="No recent activity!"
+        {% endif %} ></i>
+      </div>
+     </div><!-- row -->
+    </div>
+   </div>
+  {% endfor %}
+ </div>
+
+ <!--=== Pagination--->
+ {% if paginator.isPaginated %}
+  <div class="row student-row-block margin-top-20">
+   <div class="col-md-12 col-xs-12 col-sm-12 col-lg-12">
+    <div class="center">
+ 
+
+    
+	<div class="text-center">
+	  <ul class="pagination">
+
+	    {% ifequal paginator.currPg 1 %}	
+		<li class="disabled"><a href="#">&lt;&lt;</a></li>
+          {% else %}
+            <li><a title="first" href="javascript:;" onclick="submitCntrlForm(1)" >&lt;&lt;</a></li>
+	    {% endifequal %}
+
+	    {% if paginator.hasPrev %}
+		<li><a title="previous" href="javascript:;" onclick="submitCntrlForm({{ paginator.prevPage }})" >&lt;</a></li>	
+          {% else %}
+		<li class="disabled"><a href="#">&lt;</a></li>
+	    {% endif %}
+
+	    {% for p in paginator.pageNumbers %}
+		{% ifequal p paginator.currPg %}
+		  <li class="active"><a href="#"> {{ p }}</a></li>
+	      {% else %}
+		  <li><a href="javascript:;" onclick="submitCntrlForm({{ p }})" >{{ p }}</a></li>
+	      {% endifequal %}	
+	    {% endfor %}
+
+	    {% if paginator.hasNext %}
+		<li><a title="next" href="javascript:;" onclick="submitCntrlForm({{ paginator.nextPage }})" >&gt;</a></li>
+          {% else %}
+	      <li class="disabled"><a href="#">&gt;</a></li>
+	    {% endif %}
+
+ 	    {% ifequal paginator.currPg paginator.lastPage %} 
+		<li class="disabled"><a href="#">&gt;&gt;</a></li>
+ 	    {% else %}
+		<li><a title="last" href="javascript:;" onclick="submitCntrlForm({{ paginator.lastPage }})" >&gt;&gt;</a></li>
+	    {% endifequal %}
+
+	  </ul>
+	</div>
+
+
+   </div>
+   </div>
+  </div>
+ {% endif %}

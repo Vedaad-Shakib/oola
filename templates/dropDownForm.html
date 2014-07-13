@@ -1,0 +1,26 @@
+<form id="chkDrpDwnFrm" method="post" style="margin-top: 10px;" action="/students/add/" novalidate> <!-- hitching on with the signup form validation -->
+   {% csrf_token %}
+   {% for field in form %}
+	<div class="form-group">
+       <div class="input-group">
+
+		{% if field.label == "Admin" or field.label == "Waiver" %} 
+		   {{ field.label }}
+		{% endif %}
+
+		{{ field }}
+        </div>
+       </div>
+    {% endfor %}
+    <p class="text-center">
+      <button class="btn-u btn-primary" type="submit" id="register_submit">Register</button>
+    </p>
+</form>
+<script type="text/javascript" src="media/js/forms.js"></script>
+<script>
+ jQuery(document).ready(function() {
+        jQuery('#datePikAdd').datepicker({
+                format: 'yyyy-mm-dd' });
+ });
+</script>
+

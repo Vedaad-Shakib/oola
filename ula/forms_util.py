@@ -338,6 +338,50 @@ class FieldInteger(forms.IntegerField):
 
 ###############################################################################
 ##
+## "FieldNumber":  Form field NumberField + TextInput
+##
+###############################################################################
+
+class FieldNumber(forms.IntegerField):
+    def __init__(	self,
+    			label,
+			extraClass	= "",
+    			max_value	= None,
+    			min_value	= None,
+			visible		= True,
+			placeholder	= None,
+			required	= "auto",
+			section		= 'main',
+			admin		= False,
+			attrs		= {} ):
+
+	if required == "auto": required = ( label[0] == "*" )
+
+	attrs			= attrs.copy()
+	attrs['size']		= '30'
+	attrs['class']		= 'inputtext ' + extraClass
+	attrs['number']	= '1'
+	if required: attrs['required']	= 'required'
+	if placeholder: attrs['placeholder'] = placeholder
+
+	if visible:
+	    widget		= forms.TextInput( attrs = attrs	)
+	else:
+	    widget		= forms.HiddenInput( attrs = attrs	)
+
+	super(FieldNumber,self).__init__(	
+			label		= label,
+    			max_value	= max_value,
+    			min_value	= min_value,
+			required	= required,
+			widget		= widget			)
+
+	self.visible	= visible
+	self.section	= section
+	self.admin	= admin
+
+###############################################################################
+##
 ## "FieldCheckBox":  Form field CharField + CheckboxInput
 ##
 ###############################################################################

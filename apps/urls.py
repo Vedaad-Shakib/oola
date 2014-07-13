@@ -32,9 +32,25 @@ urlpatterns = patterns('ula.views',
     url( r'^students/?$',				'students'	),
     url( r'^students/(?P<check>check)/?$',              'students'      ),
 
-    url( r'^students/edit/?$',      			'edit'          ),
+    url( r'^students/edit/(?P<userId>\d+)/?$',      	'editStudent'   ),
+    url( r'^students/edit/(?P<userId>\d+)/(?P<check>check)/?$','editStudent'),
+
+    url( r'^students/purchase/(?P<userId>\d+)/?$',      'purchaseStudent'   ),
+    url( r'^students/purchase/(?P<userId>\d+)/(?P<check>check)/?$','purchaseStudent'),
+
+    url( r'^students/recentActivity/(?P<userId>\d+)/?$','rcntActivityStudent'  ),
+
+    url( r'^students/dataLst/?$',      			'studentList'   ),
+                       
+    url( r'^students/add/?$',				'addStudent'	),
+    url( r'^students/add/(?P<check>check)/?$',          'addStudent'    ),
+                       
+    url( r'^students/export/?$',		        'exportStudents'),
+    url( r'^students/import/?$',		        'importStudents'),
     
     url( r'^history/?$',                                'history'       ),
+    url( r'^history/search/(?P<search>.+)/?$',          'history'       ),
+    url( r'^history/dataLst/?$',      			'historyList'   ),
 
     url( r'^clearance/?$',				'clearance'	),
 
