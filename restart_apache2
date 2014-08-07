@@ -1,0 +1,5 @@
+#!/bin/bash
+
+/home/fshakib/webapps/ooladancefitness/apache2/bin/stop
+sleep 5
+/home/fshakib/webapps/ooladancefitness/apache2/bin/start

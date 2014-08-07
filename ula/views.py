@@ -584,6 +584,7 @@ def studentList( request ):
     page    = int(request.POST['page'])
     search  = str(request.POST['search']).strip()
     dRange  = str(request.POST['range']).split("-")
+    
     try:
         date1   = datetime.datetime.strptime( dRange[0].strip(),'%b %d, %Y')
     except:
@@ -592,21 +593,6 @@ def studentList( request ):
         date2   = datetime.datetime.strptime( dRange[1].strip()+" 23:59:59",'%b %d, %Y %H:%M:%S')
     except:
         date2   = datetime.datetime.strptime( dRange[1].strip()+" 23:59:59",'%B %d, %Y %H:%M:%S')    
-
-    # Add new user validation and forms
-##    if check is not None:
-##        form = AddUserForm(request.GET.copy())
-##        if form.is_valid():
-##            user2 = form.save()
-##            url     = '/students/' # + str(sort) + "/" + str(page) + "/" + str(range) + "/"
-##            json = util.JsonLoad(               url             )
-##        else:
-##            json = util.JsonFormError(form)
-##        return HttpResponse(json,
-##                            mimetype='application/json')
-
-    # Make form
-    #addUserForm = AddUserForm()
 
     # Get user list with filters (bday, waiver, balance)
     if filter == "bday":
@@ -624,14 +610,18 @@ def studentList( request ):
     #print userList
 
     # Date range
-    attendanceLst   = Attendance.objects.filter(userId__in = userList,
+    try:
+        if date1.year != 2014 or date1.month != 1 or date1.day != 1:
+            attendanceLst   = Attendance.objects.filter(userId__in = userList,
                                                 dateTime__range=(date1, date2))
-    usrAttenLst     = []
-    for i in attendanceLst:
-        usrId       = i.userId.userId
-        if usrId in usrAttenLst: continue
-        usrAttenLst.append( usrId )
-    userList = userList.filter(userId__in=usrAttenLst)
+            usrAttenLst     = []
+            for i in attendanceLst:
+                usrId       = i.userId.userId
+                if usrId in usrAttenLst: continue
+                usrAttenLst.append( usrId )
+            userList = userList.filter(userId__in=usrAttenLst)
+    except:
+        pass
 
     # Make userList a list so we can sort
     userList = list(userList)
@@ -1418,10 +1408,15 @@ def myprofile(request, check=None):
 	return HttpResponse(json,
 			    mimetype='application/json')
 
+    if str( user.birthday.date() ) == "1970-01-01":
+        birthVal = ""
+    else:
+        birthVal = user.birthday.date()
+
     form    = MyprofileForm(initial = {'userId':    user.userId,
                                        'name':      user.name,
                                        'email':     user.email,
-                                       'birth':     user.birthday.date(),
+                                       'birth':     birthVal,
                                        'phone':     user.phone,
                                        'address':   user.address,
                                        'idleTime':  user.idleTime,

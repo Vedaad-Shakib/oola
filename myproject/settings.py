@@ -1,10 +1,10 @@
 # Django settings for apps project.
 
-SITE_NAME   = 'ula-zumba-class.com'
-ROOT_NAME   = 'ula-zumba-class.com'
+SITE_NAME   = 'ooladancefitness.com'
+ROOT_NAME   = 'ooladancefitness.com'
 ROOT_WWW    = '/var/www/' + ROOT_NAME
 ROOT_HTTP   = '/Users/farzin/oola/'
-ROOT_HTTP   = '/Users/farzin/oola/'
+ROOT_HTTP   = '/home/fshakib/webapps/ooladancefitness/myproject/'
 PROJECT_URL = 'http://50.23.9.2:8000/'
 
 # Settings for sending emails
@@ -16,7 +16,7 @@ PROJECT_URL = 'http://50.23.9.2:8000/'
 #EMAIL_HOST_USER = 'vedaad799@gmail.com'
 #EMAIL_HOST_PASSWORD = ''
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 #---- Show table data format
 tblDateFmt  = '%Y-%m-%d %H:%M'
@@ -34,9 +34,9 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ula',                      # Or path to database file if using sqlite3.
-        'USER': 'djangouser',                      # Not used with sqlite3.
-        'PASSWORD': 'abc123',                  # Not used with sqlite3.
+        'NAME': 'oola',                      # Or path to database file if using sqlite3.
+        'USER': 'fshakib',                      # Not used with sqlite3.
+        'PASSWORD': 'ula-ula',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
@@ -122,10 +122,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'apps.urls'
+ROOT_URLCONF = 'myproject.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'apps.wsgi.application'
+WSGI_APPLICATION = 'myproject.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".

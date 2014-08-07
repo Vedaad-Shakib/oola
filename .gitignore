@@ -5,3 +5,6 @@
 *.css~
 *.js~
 
+#Python object files
+*.pyc
+*.pyc~

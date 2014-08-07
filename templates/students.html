@@ -20,7 +20,14 @@
          });
        });
      });*/
-</script>
+  </script>
+  <script type="text/javascript">
+    $(function () {
+      $('.selectpicker').selectpicker({
+        //'selectedText': 'cat'
+      });
+    });
+  </script>
 {% endblock %}
 
 <!--=== Content Part ===-->
@@ -47,7 +54,8 @@
    <div class="col-sm-3">
     <div class="input-group" title="Filter students">
      <span class="input-group-addon"><i class="glyphicon glyphicon-filter"></i></span>
-     <select id="filterVal" class="form-control" onchange="submitCntrlForm()" name="filter">
+     <select class="selectpicker form-control" data-container="body" data-width="auto"
+      id="filterVal" onchange="submitCntrlForm()" name="filter">
        {% if filter == "bday" %}
          <option value="none">None</option>
          <option selected="selected" value="bday">Upcoming B-days</option>
@@ -75,7 +83,8 @@
    <div class="col-sm-3">
     <div class="input-group" title="Sort students">
      <span class="input-group-addon"><i class="glyphicon glyphicon-sort"></i></span>
-     <select id="sort" class="form-control" onchange="submitCntrlForm()" name="sort">
+     <select class="selectpicker form-control" data-container="body" data-width="auto"
+      id="sort" onchange="submitCntrlForm()" name="sort">
       {% if sort == "activity"  %}
         <option value="name">By name</option>
         <option value="balance">By balance</option>

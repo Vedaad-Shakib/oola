@@ -5,7 +5,7 @@ from django.http            import HttpResponseRedirect
 
 import datetime
 
-from apps.settings          import *
+from myproject.settings     import *
 from models                 import *
 from util                   import *
 
