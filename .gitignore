@@ -8,3 +8,6 @@
 #Python object files
 *.pyc
 *.pyc~
+
+.DS_STORE
+\#*\x#
