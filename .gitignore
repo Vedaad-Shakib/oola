@@ -10,4 +10,5 @@
 *.pyc~
 
 .DS_STORE
-\#*\x#
+.DS_Store
+\#*\#

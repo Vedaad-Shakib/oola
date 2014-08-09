@@ -9,16 +9,12 @@
 
  <p>&nbsp;</p>
  <p>&nbsp;</p>
- <div class="welcome-white-small">Welcome To My Party</div>
- <p>&nbsp;</p>
  <div class="welcome-white-small">
-  <img id="logo-header" src="/media/img/oola-logo-large-tran_white.png" 
+  <img style="positive: relative;" id="logo-header" src="/media/img/oola-logo-large-tran_white.png" 
    width="35%" alt="Ool Logo">
  </div>
  <p>&nbsp;</p>
- <p class="welcome-white-xsmall">
-    First time attending? &nbsp; Enter name to register.
- </p>
+
  <p style="text-align: center; display: inline-block">
   <form method="post" action="/class/checkin/" class="class-signin-form">
    {% csrf_token %}
@@ -26,14 +22,15 @@
    <input type="hidden" name="oldCount" value="0"/>
    <div id="login" class="input-group">
     <input class="typeahead class-signin-input" type="text" 
-     placeholder="Enter name to check in" name="name" autofocus="on" size="25"/>
+     placeholder="Enter name to login/register" name="name" autofocus="on" size="25"/>
     <span class="input-group-btn">
-     <button class="btn-u btn-primary" type="submit" style="border: 0;" id="checkin">
+     <button class="btn-u btn-primary" type="submit" style="border: 0; height: 48px;" id="checkin">
       <i class="glyphicon glyphicon-log-in class-signin-icon" ></i></button>
     </span>
    </div>
   </form>
  </p>
+<div class="welcome-white-small" style="font-size: 250%; font-family: 'Brush Script MT', cursive;"> Welcome To My Party</div>
 
 </div><!-- /.container -->
 

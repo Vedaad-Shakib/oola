@@ -170,7 +170,8 @@ def classCheckRecent(request):
             jdata["name"]   = user.name
             jdata["userId"] = user.userId
             jdata["attendanceId"] = lstAttendance.attendanceId
-    except: pass
+    except: 
+        pass
 
     jsonData            = json.dumps( jdata )
     return HttpResponse(    jsonData,   mimetype    = 'application/json')
@@ -319,7 +320,7 @@ def classCheckin(request, userId = None):
     attendance.dateTime = datetime.datetime.today()
     attendance.DancerNumber = newCount
     attendance.save()
-
+    attendanceId = attendance.attendanceId
 
     #----------------------------------------------------------------------
     # Set the recent change
@@ -347,7 +348,8 @@ def classCheckin(request, userId = None):
                                "guests": guests,
                                "userId": user.userId,
 			       "oldCount": newCount,
-                               "waiver": user.waiverSigned},
+                               "waiver": user.waiverSigned,
+                               "attendanceId": attendanceId},
                               context_instance=RequestContext(request))
 
 #==============================================================================
