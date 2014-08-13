@@ -751,17 +751,16 @@ def exportStudents( request ):
 def importStudents( request ):
     if request.POST:
         fileName    = request.FILES.copy()['fileName']
-        fileData    = fileName.read().split(        '\n'                )
+        fileData    = fileName.read().split(        '\r'                )
 
         #----------------------------------------------------------------
         # Check the file data to be correct and save it
         #----------------------------------------------------------------
-
-        fileHeader  = fileData[0].replace(          "\r",       ""      )
+        fileHeader  = fileData[0][:55].replace(          "\r",       ""      ) #[:55] is the header
         header      = "Name,E-mail,Address,Phone,Birthday,Balance,Waiver,Admin"
-        
+
         if fileHeader != header: return
-        
+                
         #----------------------------------------------------------------
         # Save imported file data into data base
         #----------------------------------------------------------------
@@ -769,9 +768,13 @@ def importStudents( request ):
         for row in fileData[1:]:
             rowData = row.replace("\r", ""  )
             studentData = rowData.split(    ',' )
-            if len( studentData ) != 8 : continue
+            if len( studentData ) != 8: continue
 
             email = studentData[1]
+            if studentData[1] == "excelttest3@gmail.com":
+                file = open("/tmp/XXX.txt", "w")
+                file.write(", ".join(studentData))
+                file.close()
                         
             try:
                 user    = User.objects.get( email__exact = email )
@@ -783,8 +786,8 @@ def importStudents( request ):
             else:
                 updateStudent(     studentData   )
                             
-        
-        return HttpResponseRedirect(    "/students/"        )
+    
+    return HttpResponseRedirect("/students/")
 
 ###############################################################################
 ##
@@ -803,10 +806,23 @@ def updateStudent( data, update = False ):
         user.name               = data[0]
         user.address            = data[2]
         user.phone              = data[3]
-        user.birthday           = datetime.datetime.strptime(data[4],'%Y-%m-%d')
-        user.balance            = int(data[5])
+        try:
+            user.birthday       = datetime.datetime.strptime(data[4],'%Y-%m-%d') 
+        except:
+            try:
+                data[4]         = (data[4][:-2] + "19" + data[4][-2:]) if int(data[4][-2:]) > 20 else (data[4][:-2] + "20" + data[4][-2:]) #csv date comes in format 7/3/99
+                user.birthday   = datetime.datetime.strptime(data[4],'%m/%d/%Y') 
+            except:
+                user.birthday = datetime.datetime(1970, 1, 1)
+        try:
+            user.balance        = int(data[5])
+        except:
+            user.balance        = 0
         user.waiverSigned       = True if data[6] == "True" else False
-        user.userType           = int(data[7])
+        try:
+            user.userType       = int(data[7])
+        except:
+            user.userType       = 0
         user.save()
         return 
 
@@ -822,15 +838,28 @@ def updateStudent( data, update = False ):
     user.address            = data[2].lower()
     user.phone              = data[3]
     user.lastAccess         = today
-    user.balance            = int(data[5])
+    try:
+        user.balance        = int(data[5]) 
+    except:
+        user.balance        = 0
     user.waiverSigned       = True if data[6] == "True" else False
     user.facebook           = False
     user.notes              = ""
     user.dateCreated        = today
-    user.userType           = int(data[7])
+    try:
+        user.userType       = int(data[7])
+    except:
+        user.userType       = 0
     user.idleTime           = 10
-    user.birthday           = datetime.datetime.strptime(data[4],'%Y-%m-%d')
-    user.birthdayAssigned   = False
+    try:
+        user.birthday      = datetime.datetime.strptime(data[4],'%Y-%m-%d')
+    except:
+        try:
+            data[4]        = (data[4][:-2] + "19" + data[4][-2:]) if int(data[4][-2:]) > 20 else (data[4][:-2] + "20" + data[4][-2:]) #csv date comes in format 7/3/99
+            user.birthday  = datetime.datetime.strptime(data[4],'%m/%d/%Y') 
+        except:
+            user.birthday  = datetime.datetime(1970,1, 1)
+    birthdayAssigned = False
     user.save()
 
 #==============================================================================
@@ -1181,7 +1210,7 @@ def editStudent(request, userId, check=None):
 
     return render_to_response(  'editStudentForm.html',
                                 {'form':        editUserForm,
-                                 'userType':    user2.userType,
+                                 'userType':    int(user2.userType),
                                  'title':       'Edit Student',
                                  'actionUrl':   "/students/edit/%d/" %int( userId ),
                                  'submitVal':   'Save'
