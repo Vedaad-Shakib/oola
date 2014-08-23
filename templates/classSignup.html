@@ -17,7 +17,7 @@
  <div class="welcome-white-small">Please create an account so you can check in.</div>
  <p>&nbsp;</p>
  <div class="center">
-  <form id="form" method="post" action="/class/signup/" class="class-signin-form">
+  <form id="form" method="post" action="/class/signup/" class="class-signin-form" novalidate>
    {% csrf_token %}
    {% for field in form %}
     <div class="form-group">
