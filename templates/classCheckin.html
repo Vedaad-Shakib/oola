@@ -26,13 +26,13 @@
   <input type="hidden" name="name" value="{{ name }}"/>
   <input type="hidden" name="oldCount" value="{{ oldCount }}"/>
   <div class="center">
-   <span class="welcome-white-small">Additional Guest(s)&nbsp;</span>
-   <input class="class-signin-input" type="text" name="guests" id="newGuests" size="3" value="{{ guests }}"
-    style="position: relative; top:-3px;" onkeypress ="if (event.keyCode == 13) { setGuestFunc( jQuery(this).val() ); return false; }" />
-   <button class="btn-u" type="submit" style="border: 0;" title="Add guest" onclick="addGuestFunc(); return false;">
-    <i class="glyphicon glyphicon-plus class-signin-icon" ></i></button>
-   <button class="btn-u" type="submit" style="border: 0;" title="Reduce guest" onclick="reduceGuestFunc(); return false;">
-    <i class="glyphicon glyphicon-minus class-signin-icon" ></i></button>
+   <span style="font-size: 100%;" class="welcome-white-small">Additional Guest(s)&nbsp;</span>
+   <input style="height: 35px; width: 43px;" class="class-signin-input" type="text" name="guests" id="newGuests" size="2.4" value="{{ guests }}"
+    style="position: relative; top:-3px;" onkeypress="if (event.keyCode == 13) { setGuestFunc( jQuery(this).val() ); return false; }" />
+   <button class="btn-u" type="submit" style="border: 0;" title="Add guests" onclick="addGuestFunc(); return false;">
+    <i class="glyphicon glyphicon-plus class-signin-icon"></i></button>
+   <button class="btn-u" type="submit" style="border: 0;" title="Subtract guests" onclick="reduceGuestFunc(); return false;">
+    <i class="glyphicon glyphicon-minus class-signin-icon"></i></button>
   </div>
  </form>
 
@@ -112,7 +112,7 @@ function setActivityTimer()
 {
   myTimer = setTimeout(function () {
   		window.location.assign( "/class/save/" + jQuery("#guests").text() + "/{{ userId }}/{{ oldCount }}/" );
- 		}, 15000);
+ 		}, 15000000);
 }
 
 function addGuestFunc()
