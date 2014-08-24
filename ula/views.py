@@ -1289,7 +1289,7 @@ def forgotPassword( request, check = None ):
             user	= User.objects.get( email__exact = email        )
             forgotPasswd= form.save(                                    )
             emailBody   = "Dear %s" %user.name
-            emailBody   +="<br/><br/>To reset your account passowrd, please click on the following link:"
+            emailBody   +="<br/><br/>To reset your account password, please click on the following link:"
             emailBody   +="<br/>"
             emailBody   += settings.PROJECT_URL + "forgotCode/" + forgotPasswd.forgotCode
 
@@ -1341,7 +1341,8 @@ def changePassword( request, forgotCode = None, check = None ):
 ##	    SetUserCookies(                     request,        user    )
 
             emailBody   = "Dear %s" %user.name
-            emailBody   +="<br/><br/>Your passowrd has been reset on www.Ula.com."
+            emailBody   +="<br/><br/>Your passowrd has been reset on " 
+	    emailBody	+= settings.PROJECT_URL
             emailBody   +="<br/>"
 	
             util.emailNotification(             "Change password",

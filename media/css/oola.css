@@ -128,6 +128,15 @@
     color: #ffffff;
 }
 
+.navbar .nav li.dropdown > .dropdown-toggle .caret {
+    border-top-color: #fff;
+    border-bottom-color: #fff;
+}
+.navbar .nav li.dropdown > .dropdown-toggle:hover .caret {
+    border-top-color: #333;
+    border-bottom-color: #333;
+}
+
 .center {
     text-align: center;
 }

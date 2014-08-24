@@ -1,22 +1,23 @@
 # Django settings for apps project.
 
-SITE_NAME   = 'ooladancefitness.com'
+SITE_NAME   = 'http://ooladancefitness.fshakib.webfactional.com/'
 ROOT_NAME   = 'ooladancefitness.com'
 ROOT_WWW    = '/var/www/' + ROOT_NAME
 ROOT_HTTP   = '/Users/farzin/oola/'
 ROOT_HTTP   = '/home/fshakib/webapps/ooladancefitness/myproject/'
-PROJECT_URL = 'http://50.23.9.2:8000/'
+PROJECT_URL = SITE_NAME
 
 # Settings for sending emails
 #DEFAULT_FROM_EMAIL = 'vedaad799@gmail.com'
 #SERVER_EMAIL = 'vedaad799@gmail.com'
 #EMAIL_USE_TLS = True
-#EMAIL_HOST = 'smtp.gmail.com'
 #EMAIL_PORT = 587
-#EMAIL_HOST_USER = 'vedaad799@gmail.com'
-#EMAIL_HOST_PASSWORD = ''
+EMAIL_FROM		= 'support@ooladancefitness.com'
+EMAIL_HOST		= 'smtp.webfaction.com'
+EMAIL_HOST_USER		= 'ula'
+EMAIL_HOST_PASSWORD	= 'ula@ula'
 
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_BACKEND		= 'django.core.mail.backends.console.EmailBackend'
 
 #---- Show table data format
 tblDateFmt  = '%Y-%m-%d %H:%M'

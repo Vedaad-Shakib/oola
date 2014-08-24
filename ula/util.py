@@ -117,7 +117,7 @@ def JsonFormError( form ):
 
 def emailNotification( subject, user, htmlMsg):
     
-    sender      = "info@Ula.com"
+    sender      = settings.EMAIL_FROM
     txtMsg      = ""
     msg         = EmailMultiAlternatives(   subject,   txtMsg,
                                             sender,
