@@ -490,7 +490,7 @@ def historyList( request ):
             dispList.sort(key=operator.attrgetter("dateTime"))
         else:
             dispList.sort(key=operator.attrgetter("date"))
-
+        dispList.reverse()
      
     #---------------------------------------------------------------------
     # Set the paginator object and get the current page data list
@@ -498,7 +498,7 @@ def historyList( request ):
 
     currPage        = page
     pgintObj        = getPgintObj(request,          dispList,
-                                  currPage                              )
+                                  currPage,	    nCols = 1           )
 
     dispList        = pgintObj.getDataList(                             )
 
@@ -660,7 +660,7 @@ def studentList( request ):
     #---------------------------------------------------------------------
     currPage        = page
     pgintObj        = getPgintObj(request,          userList,
-                                  currPage                              )
+                                  currPage,	    nCols = 4           )
 
     dataLst         = pgintObj.getDataList(                             )
 
@@ -861,237 +861,6 @@ def updateStudent( data, update = False ):
             user.birthday  = datetime.datetime(1970,1, 1)
     birthdayAssigned = False
     user.save()
-
-#==============================================================================
-#
-# "students": The admin landing page
-#
-#==============================================================================
-
-def xstudents( request, sortBy="name0", page="1", range="all"):
-
-    #if request.session['userType'] == 0:
-    #    return HttpResponseRedirect('/clearance/')
-
-    try:
-        userName = request.session['fullName']
-        #userType = request.session['userType']
-        userId   = request.session['userId']
-        user     = User.objects.get(userId=userId)
-        userType = user.userType
-    except:
-        return HttpResponseRedirect('/')
-
-    # if was redirected from "save" button in extra notes page
-    if request.POST:
-        userId = request.POST['userId']
-        user = User.objects.get(userId=userId)
-        if request.POST['birthday'] != '':
-            birthday = datetime.date(int(str(request.POST['birthday'])[:4]), int(str(request.POST['birthday'])[5:7]),int(str(request.POST['birthday'])[8:]))
-        else:
-            birthday = ''
-        user.name = request.POST['name']
-        name = request.POST['name']
-        try:
-            waiverSigned = request.POST['waiverSigned']
-            user.waiverSigned = True
-        except:
-            user.waiverSigned = False
-
-        try:
-            facebookConnected = request.POST['facebookConnected']
-            user.facebook = True
-        except:
-            user.facebook = False
-
-        user.address = request.POST['address']
-        if user.birthday != birthday:
-            user.birthdayAssigned = True
-        if birthday != '':
-            user.birthday = birthday
-        user.email = request.POST['email']
-        user.notes = request.POST['notes']
-        user.balance = request.POST['balance']
-        user.save()
-
-    range = str(range)
-    tEnd = datetime.datetime.now()
-    if range == "year":
-        tBeg = datetime.datetime(tEnd.year - 1, tEnd.month, tEnd.day)
-    if range == "all":
-        tBeg = datetime.datetime(1970, 1, 1)
-    if range == "month":
-        if tEnd.month == 1:
-            tBeg = datetime.datetime(tEnd.year, tEnd.month+11, tEnd.day)
-        else:
-            tBeg = datetime.datetime(tEnd.year, tEnd.month-1, tEnd.day)
-    if range == "day":
-        try:
-            tBeg = datetime.datetime(tEnd.year, tEnd.month, tEnd.day - 1)
-        except:
-            tBeg = datetime.datetime(tEnd.year, tEnd.month, 1)
-
-    if range == "week":
-        if tEnd.day - 7 < 1:
-            if str(tEnd.month) in "2468911":
-                tBeg = datetime.datetime(tEnd.year, tEnd.month-1, 31-(7-tEnd.day))
-            else:
-                tBeg = datetime.datetime(tEnd.year, tEnd.month-1, 30-(7-tEnd.day))
-        else:
-            tBeg = datetime.datetime(tEnd.year, tEnd.month, tEnd.day - 7)
-
-    if tEnd.day - 7 < 1:
-        if str(tEnd.month) in "2468911":
-            lastWeek = datetime.datetime(tEnd.year, tEnd.month-1, 31-(7-tEnd.day))
-        else:
-            lastWeek = datetime.datetime(tEnd.year, tEnd.month-1, 30-(7-tEnd.day))
-    else:
-        lastWeek = datetime.datetime(tEnd.year, tEnd.month, tEnd.day - 7)
-
-    today = datetime.datetime.now()
-
-    attendance = list(Attendance.objects.filter(dateTime__range=[tBeg, tEnd]))
-    cnt = {}
-    for i in attendance:
-        cnt[i.userId.userId] = 1
-
-    if request.GET:
-        searchFilled = True
-        form = SearchForm( request.GET.copy() )
-        searchTerm = form.data['search'].title()
-    else:
-        form = SearchForm()
-        searchFilled = False
-        searchTerm = None
-
-    usersPerPage = 4
-    page = int(page)
-    sortBy = str(sortBy)
-    if sortBy[:-1] == "waiver":
-        sortBy = "waiverSigned" + sortBy[-1]
-    if sortBy[:-1] == "bday":
-        sortBy = "birthdayAssigned" + sortBy[-1]
-
-    user, errUrl = GetValidUser(request)
-    if errUrl:
-        return HttpResponseRedirect(errUrl)
-
-    if searchFilled:
-        userList = list(User.objects.filter(name__contains=searchTerm))
-    else:
-        userList = list(User.objects.all())
-
-    userList2 = []
-    for i in userList:
-        if cnt.has_key(i.userId):
-            userList2.append( i )
-
-    if range != "all":
-        userList = userList2
-
-    numUsers = len(userList)
-    maxPages = int(math.ceil((numUsers+0.0)/usersPerPage))
-    if maxPages < 1:
-        maxPages = 1
-
-    userList.sort(key=operator.attrgetter('name'))
-    if sortBy[-1] == "0":
-        rev = False
-    else:
-        rev = True
-    userList.sort(key=operator.attrgetter(sortBy[:-1]), reverse=rev)
-
-    if sortBy[:-1] == "waiverSigned":
-        sortBy = "waiver" + sortBy[-1]
-    if sortBy[:-1] == "birthdayAssigned":
-        sortBy = "bday" + sortBy[-1]
-
-    if maxPages < page:
-        return HttpResponseRedirect('/students/'+sortBy+'/'+ str(int(maxPages)) + '/all/')
-
-    startNum = (page-1)*usersPerPage
-    endNum   = (page)*usersPerPage
-    userList = userList[startNum:endNum]
-
-    if page != 1:
-        prevPage = page - 1
-    else:
-        prevPage = -1
-
-    if page > 2:
-        prevPrevPage = page - 2
-    else:
-        prevPrevPage = -1
-
-    if page < maxPages:
-        nextPage = page + 1
-    else:
-        nextPage = -1
-
-    if (page+1) < maxPages:
-        nextNextPage = page + 2
-    else:
-        nextNextPage = -1
-
-    lastPage = maxPages
-
-    if sortBy[:-1] == "waiver":
-        waiver = "waiver"+str(int(sortBy[-1])^1)
-        bday = "bday0"
-        name = "name0"
-        balance = "balance0"
-    if sortBy[:-1] == "name":
-        name = "name"+str(int(sortBy[-1])^1)
-        bday = "bday0"
-        waiver = "waiver0"
-        balance= "balance0"
-    if sortBy[:-1] == "balance":
-        balance = "balance"+str(int(sortBy[-1])^1)
-        bday = "bday0"
-        name = "name0"
-        waiver = "waiver0"
-    if sortBy[:-1] == "bday":
-        bday = "bday"+str(int(sortBy[-1])^1)
-        waiver = "waiver0"
-        name = "name0"
-        balance= "balance0"
-
-    if searchTerm:
-        search = searchTerm
-        if search.find(" ") != -1:
-            i = search.find(" ")
-            search = search[:i]+"+"+search[i+1:]
-        search = "?search=" + search
-    else:
-        search = ""
-
-    range = str(range) + "/"
-
-    url = str(sortBy) + "/" + str(page) + "/" + str(range)
-
-    return render_to_response( 'Admin-landing.html',
-                               {'userName': userName,
-                                'userType': userType,
-                                'userList': userList,
-                                'page': str(page),
-                                'prevPage': str(prevPage),
-                                'prevPrevPage':str(prevPrevPage),
-                                'nextNextPage':str(nextNextPage),
-                                'nextPage':str(nextPage),
-                                'lastPage':str(lastPage),
-                                'waiver':waiver,
-                                'name':name,
-                                'bday':bday,
-                                'balance':balance,
-                                'sortBy':sortBy,
-                                'form':form,
-                                'search':search,
-                                'range':range,
-                                'lastWeek': lastWeek,
-                                'today': today,
-                                'url': url,
-                                },
-                               context_instance=RequestContext(request) )
 
 #==============================================================================
 #
@@ -1468,11 +1237,11 @@ def myprofile(request, check=None):
 ##
 ###############################################################################
 
-def getPgintObj( request, usrLst, currPage = 1, padding = 3 ):
+def getPgintObj( request, usrLst, currPage = 1, padding = 3, nCols = 1 ):
     
  #   currUsr     = getCurrUser(                  request                 )
     pgintObj    = paginator.PaginatorObj(       usrLst,
-                                                1 * 4,
+                                                6 * nCols,
                                                 currPage,
                                                 padding                 )
     return pgintObj
