@@ -17,7 +17,7 @@ urlpatterns = patterns('ula.views',
     url( r'^signin/?$', 				'signin'	),
     url( r'^signin/(?P<check>check)/?$',		'signin'	),
     
-    url( r'^/?$',					'classPage'	), 
+    url( r'^/?$',					'mainPage'	), 
     url( r'^class/?$',					'classPage'	),
 
     url( r'^class/checkin/?$',				'classCheckin'	),

@@ -5,7 +5,7 @@
 	color: #e67e22;
 }
 
-/*Navber Toggle*/
+/*Navbar Toggle*/
 .navbar-toggle,
 .navbar-default .navbar-toggle:hover, 
 .navbar-default .navbar-toggle:focus {
@@ -20,7 +20,7 @@
 	border-color: #d35400;
 }
 
-/*Serach Box*/
+/*Search Box*/
 .header .navbar .nav > li > a.search:hover {
 	color: #e67e22;
 	border-bottom-color: #e67e22;
@@ -30,15 +30,16 @@
 ------------------------------------*/
 @media (min-width: 767px) {
 	/*Navbar*/
+	/* fixing issue regarding jittering box
 	.header .navbar-default .navbar-nav > li > a:hover,
 	.header .navbar-default .navbar-nav > .active > a {
 		border-bottom: solid 2px #e67e22;
-	}
+	}*/
 
 	.header .navbar-default .navbar-nav > .open > a,
 	.header .navbar-default .navbar-nav > .open > a:hover,
 	.header .navbar-default .navbar-nav > .open > a:focus {
-		color: #000000;
+		color: #e67e22;
 	}
 
 	/*Dropdown Menu*/

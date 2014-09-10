@@ -55,6 +55,8 @@ a.read-more:hover {
 ------------------------------------*/
 .btn-u {
 	background: #e67e22;
+	border:0;
+	padding: 3px 6px 9px 6px;
 }
 
 .btn-u:hover {

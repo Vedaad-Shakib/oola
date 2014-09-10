@@ -42,8 +42,7 @@
 
 .class-signin-input {
     border: 2px solid #e67e22;
-    padding: 5px ; 
-    font-size: 24px ; 
+    font-size: 20px ; 
     background-color: rgba( 255, 255, 255, 0.85 ) ; 
     color: #000000 ;
     border-radius: 0;
@@ -52,8 +51,7 @@
 .class-signin-icon {
     border: 0; 
     color: #000000; 
-    font-size: 24px; 
-    padding: 7px 5px 13px 3px; 
+    font-size: 18px; 
     margin: 0 auto ;
 }
 
@@ -114,7 +112,6 @@
 
 .welcome-white-small {
     text-align: center;
-    font-size: 24px;
     font-style: normal;
     font-weight: normal;
     color: #ffffff;
@@ -126,6 +123,15 @@
     font-style: normal;
     font-weight: normal;
     color: #ffffff;
+}
+
+.navbar .nav li.dropdown > .dropdown-toggle .caret {
+    border-top-color: #fff;
+    border-bottom-color: #fff;
+}
+.navbar .nav li.dropdown > .dropdown-toggle:hover .caret {
+    border-top-color: #333;
+    border-bottom-color: #333;
 }
 
 .center {
@@ -469,4 +475,57 @@
 }
 .oola-reg-page label {
 	color: #777;
+}
+
+.header .navbar-default .navbar-nav > .open > a:focus {
+    color: #000000;
+}
+
+.navbar-default .navbar-nav > li > a {
+   color: white;
+ }
+
+.additional-guests {
+    font-size: 15px;
+}
+
+.additional-guests-input {
+    width: 5%;
+    height: 30px;
+    text-align: center;
+    top: 0px !important;
+}
+
+.modGuests {
+    padding-top: 3px;
+    padding-bottom: 9px;
+}
+
+#login input:first-child {
+    padding: 8px;
+}
+
+#login .class-signin-input {
+    padding: 8px;
+}
+
+#login button.btn-u {
+    padding: 13px;
+}
+
+#login button.btn-u i {
+    top: -7px;
+    font-size: 30px;
+}
+
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+    color: white;
+}
+
+.navbar .nav li.dropdown > .dropdown-toggle:hover .caret {
+    border-top-color: white;
+}
+
+.navbar .nav li.open > .dropdown-toggle:focus .caret {
+    border-top-color: black;
 }

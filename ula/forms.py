@@ -184,9 +184,9 @@ class ClassSignup(forms.Form):
 					placeholder     = 'Enter e-mail address',
                                         attrs           = {"onkeypress": "resetActivityTimer()"})
 
-    balance	= FieldInteger(		label		= '* Number of Classes Left',
+    balance	= FieldInteger(		label		= 'Number of Classes Left',
 					extraClass	= "class-signin-input",
-					placeholder     = 'Enter balance, excluding today',
+					placeholder     = 'Enter # of classes, excluding today',
                                         attrs           = {"onkeypress": "resetActivityTimer()"})
 
 #------------------------------------------------------------------------------
@@ -215,7 +215,10 @@ class ClassSignup(forms.Form):
 	user.address		= ""
 	user.phone		= ""
 	user.lastAccess		= today
-	user.balance		= int(str(self.data['balance']))
+	try:
+            user.balance       	= int(str(self.data['balance'])) 
+        except:
+            user.balance        = 0
         user.waiverSigned       = False
 	user.facebook		= False
 	user.notes		= ""
